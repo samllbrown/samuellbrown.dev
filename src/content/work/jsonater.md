@@ -1,35 +1,24 @@
 ---
 title: JSONater
 publishDate: 2020-03-02 00:00:00
-img: /assets/stock-1.jpg
-img_alt: Iridescent ripples of a bright blue and pink liquid
+img: /assets/json.png
+img_alt: n/a
 description: |
-  We designed a whodunnit-style game to introduce Markdown formatting. Suspense — suspicion — syntax!
+  JSONater is an internal tool I designed and developed to reduce development time by converting Excel data into JSON.
 tags:
-  - Design
-  - Dev
-  - User Testing
+  - Excel to JSON
+  - Kotlin Multiplatform
+  - Development Efficiency
 ---
 
-## Level-two heading
+## The problem
 
-> Tell me and I forget. Teach me and I remember. Involve me and I learn.
+*As this is a currently used tool, some parts will be taken out for privacy reasons.*
 
-Lorem ipsum dolor sit amet, <a href="https://astro.build/">Astro</a> makes people happy. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Proin nibh nisl condimentum id venenatis a condimentum vitae. Dapibus ultrices in iaculis nunc. Arcu odio ut sem nulla pharetra diam sit amet. Diam quis enim lobortis scelerisque fermentum dui faucibus in ornare.
+Often, in products, there is a need to generate or modify large amounts of preexisting JSON data. Initially, we created varying amounts of JSON manually, which was manageable until we needed to generate it from scratch. This JSON had to be in a specific format, with different options depending on the data provided in an Excel spreadsheet.
 
-Arcu dui vivamus arcu felis bibendum ut tristique et egestas. Eget gravida cum sociis natoque penatibus. Cras fermentum odio eu feugiat pretium nibh. Proin nibh nisl condimentum id venenatis. Porta nibh venenatis cras sed felis eget velit. Id diam vel quam elementum pulvinar etiam non.
+## Solution
 
-### Level-three heading
+When designing JSONater, the main requirement was that it had to be multiplatform, as our company uses both Windows and Mac systems for product development. While this project could have been implemented with carefully crafted Excel macros or any scripting language, I wanted it to be usable out of the box and to have a small UI. Therefore, I chose Kotlin for its multiplatform capabilities, specifically targeting a desktop environment.
 
-Ultrices tincidunt arcu non sodales neque sodales ut. Sed enim ut sem viverra aliquet eget sit amet. Lacus luctus accumsan tortor posuere ac ut consequat semper viverra. Viverra accumsan in nisl nisi scelerisque eu ultrices. In massa tempor nec feugiat nisl pretium fusce.
-
-### Level-three heading
-
-Sed pulvinar porttitor mi in ultricies. Etiam non dolor gravida eros pulvinar pellentesque et dictum ex. Proin eu ornare ligula, sed condimentum dui. Vivamus tincidunt tellus mi, sed semper ipsum pharetra a. Suspendisse sollicitudin at sapien nec volutpat. Etiam justo urna, laoreet ac lacus sed, ultricies facilisis dolor. Integer posuere, metus vel viverra gravida, risus elit ornare magna, id feugiat erat risus ullamcorper libero. Proin vitae diam auctor, laoreet lorem vitae, varius tellus.
-
-Aenean pretium purus augue, ut bibendum erat convallis quis. Cras condimentum quis velit ac mollis. Suspendisse non purus fringilla, venenatis nisl porta, finibus odio. Curabitur aliquet metus faucibus libero interdum euismod. Morbi sed magna nisl. Morbi odio nibh, facilisis vel sapien eu, tempus tincidunt erat. Nullam erat velit, sagittis at purus quis, tristique scelerisque tortor. Pellentesque lacinia tortor id est aliquam viverra. Vestibulum et diam ac ipsum mollis fringilla.
-
-#### Level-four heading
-
-- We noted this
-- And also this other point
+I really enjoyed learning about Kotlin Multiplatform and I'm really excited to see how far it can be adopted. I think there is plenty of room for growth, and I feel most companies should and will convert their legacy java projects into Kotlin. I don't think there is many reasons to start a new product in Java. 
