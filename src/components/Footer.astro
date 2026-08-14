@@ -1,17 +1,13 @@
 ---
-import Icon from './Icon.astro';
 const currentYear = new Date().getFullYear();
 ---
 
 <footer>
 	<div class="group">
-		<p>
-			Designed & Developed with <a href="https://astro.build/">Astro</a>
-			<Icon icon="rocket-launch" size="1.2em" />
-		</p>
 		<p>&copy; {currentYear} Samuel Brown</p>
 	</div>
 	<p class="socials">
+		<a href="/">Home</a>
 		<a href="https://github.com/samllbrown"> GitHub</a>
 		<a href="https://www.linkedin.com/in/samuel-b-569810134/"> LinkedIn</a>
 	</p>
@@ -49,6 +45,7 @@ const currentYear = new Date().getFullYear();
 	.socials {
 		display: flex;
 		justify-content: center;
+		align-items: center;
 		gap: 1rem;
 		flex-wrap: wrap;
 	}

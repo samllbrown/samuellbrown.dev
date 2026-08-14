@@ -1,0 +1,93 @@
+---
+import Search from 'astro-pagefind/components/Search';
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+import Icon from '../../components/Icon.astro';
+import PostPreview from '../../components/PostPreview.astro';
+import { getPublishedPosts } from '../../utils';
+
+const posts = await getPublishedPosts();
+---
+
+<BaseLayout title="All Posts | Samuel Brown" description="Articles and notes by Samuel Brown">
+	<main class="wrapper stack gap-10">
+		<header class="stack gap-2">
+			<a class="back-link" href="/"><Icon icon="arrow-left" size="1.2em" /> Home</a>
+			<h1>All posts</h1>
+		</header>
+
+		<Search id="search" className="pagefind-ui" uiOptions={{ showImages: false }} />
+
+		<ul class="post-list stack gap-4">
+			{
+				posts.map((post) => (
+					<li>
+						<PostPreview post={post} />
+					</li>
+				))
+			}
+		</ul>
+	</main>
+</BaseLayout>
+
+<style>
+	main {
+		max-width: 60rem;
+		padding-block: 3rem;
+	}
+
+	h1 {
+		font-family: var(--font-brand);
+		font-size: var(--text-3xl);
+		font-weight: 600;
+		color: var(--gray-0);
+	}
+
+	.back-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		align-self: flex-start;
+		color: var(--accent-regular);
+		text-decoration: none;
+		font-weight: 500;
+	}
+
+	.back-link:hover,
+	.back-link:focus {
+		text-decoration: underline;
+	}
+
+	.post-list {
+		list-style: none;
+		padding: 0;
+	}
+
+	@media (min-width: 50em) {
+		h1 {
+			font-size: var(--text-4xl);
+		}
+	}
+</style>
+
+<style is:global>
+	.pagefind-ui {
+		--pagefind-ui-scale: 0.9;
+		--pagefind-ui-primary: var(--accent-dark);
+		--pagefind-ui-text: var(--gray-200);
+		--pagefind-ui-background: var(--gray-999);
+		--pagefind-ui-border: var(--gray-800);
+		--pagefind-ui-tag: var(--gray-800);
+		--pagefind-ui-border-width: 1px;
+		--pagefind-ui-border-radius: 0.75rem;
+		--pagefind-ui-font: var(--font-body);
+		max-width: 60rem;
+	}
+
+	.pagefind-ui mark {
+		background: var(--accent-overlay);
+		color: var(--gray-0);
+		border-radius: 0.25em;
+	}
+</style>
