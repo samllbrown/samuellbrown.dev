@@ -193,6 +193,8 @@
 		this.flankCommit = null;
 		this.collecting = null;
 		this.collectingSheep = null;
+		this.collectReason = null;
+		this.flockRoute = null;
 		this.creeping = false;
 		this.gcm = null;
 		this.cohesion = 0;
@@ -307,8 +309,9 @@
 						hx /= hl2; hy /= hl2;
 					}
 				}
-				for (var w2 = 0; w2 < owalls.length; w2++) {
-					var ow2 = owalls[w2], sd2 = segDist(s.x, s.y, ow2[0], ow2[1], ow2[2], ow2[3]);
+				var allWalls = this.walls;
+				for (var w2 = 0; w2 < allWalls.length; w2++) {
+					var ow2 = allWalls[w2], sd2 = segDist(s.x, s.y, ow2[0], ow2[1], ow2[2], ow2[3]);
 					if (sd2.d < 3) {
 						var qx2 = ow2[0] + (ow2[2] - ow2[0]) * sd2.t - s.x, qy2 = ow2[1] + (ow2[3] - ow2[1]) * sd2.t - s.y;
 						var ql = len(qx2, qy2); qx2 /= ql; qy2 /= ql;
@@ -324,6 +327,12 @@
 								else if (sd2.t > 0.5 ? (hx * (ow2[2] - ow2[0]) + hy * (ow2[3] - ow2[1])) < 0 : (hx * (ow2[2] - ow2[0]) + hy * (ow2[3] - ow2[1])) > 0) { hx = -hx; hy = -hy; }
 							}
 							hx /= hl3; hy /= hl3;
+							// A sheep won't jam itself into a dead end: if the slide leads to a
+							// wall end that meets the field edge, and it's close, go the other way.
+							var ex = (ow2[2] - s.x) * hx + (ow2[3] - s.y) * hy > 0 ? ow2[2] : ow2[0];
+							var ey = ex === ow2[2] ? ow2[3] : ow2[1];
+							var deadEnd = ex <= 0 || ex >= W || ey <= 0 || ey >= H;
+							if (deadEnd && len(ex - s.x, ey - s.y) < 12) { hx = -hx; hy = -hy; }
 						}
 					}
 				}
@@ -361,36 +370,53 @@
 		this.cohesion = fN;
 		this.extent = 0;
 		var flank = this.level.flank;
-		// Direction from flock to pen.
-		var ux = TARGET.x - gx, uy = TARGET.y - gy, ul = len(ux, uy); ux /= ul; uy /= ul;
-		var furthest = null, fd = -1, dists = [];
+		// How big the bulk of the flock is (ignore the odd outlier).
+		var dists = [];
+		for (var k = 0; k < loose.length; k++) dists.push(len(loose[k].x - gx, loose[k].y - gy));
+		dists.sort(function (a, b) { return a - b; });
+		this.extent = dists[Math.min(dists.length - 1, Math.floor(dists.length * 0.75))];
+		// Direction to drive the flock: at the pen, unless something is in the
+		// way, in which case rule three applies to the flock too: aim for its edge.
+		var aim = TARGET;
+		this.flockRoute = null;
+		if (flank && this.level.obstacles && !this.level.naive) {
+			var fr = this.routeAround(this.gcm, TARGET, null, false, Math.min(this.extent, 10));
+			if (fr) { aim = fr; this.flockRoute = fr; }
+		}
+		var ux = aim.x - gx, uy = aim.y - gy, ul = len(ux, uy); ux /= ul; uy /= ul;
+		var furthest = null, fd = -1, behind = null, bd = -1;
 		for (var j = 0; j < loose.length; j++) {
 			var rx = loose[j].x - gx, ry = loose[j].y - gy, d = len(rx, ry);
-			dists.push(d);
 			// A real dog leaves a sheep that is already out in front, heading the right way.
 			if (flank && (rx * ux + ry * uy) / d > 0.5) continue;
 			if (d > fd) { fd = d; furthest = loose[j]; }
+			// ...and never drives on with a sheep left behind it.
+			if (flank && this.rule === 'drive' && (loose[j].x - this.dog.x) * ux + (loose[j].y - this.dog.y) * uy < -4 && d > bd) { bd = d; behind = loose[j]; }
 		}
-		// How big the bulk of the flock is (ignore the odd outlier).
-		dists.sort(function (a, b) { return a - b; });
-		this.extent = dists[Math.min(dists.length - 1, Math.floor(dists.length * 0.75))];
 		// Finish the sheep you started on: a real dog doesn't switch stragglers
 		// every time a different one becomes marginally the furthest.
+		var forced = false, reason = 'far';
 		if (flank && this.rule === 'collect' && this.collecting && !this.collecting.penned) {
 			var kd = len(this.collecting.x - gx, this.collecting.y - gy);
-			if (kd > fN * 0.9) { furthest = this.collecting; fd = kd; }
+			if (this.collectReason === 'behind') {
+				// A sheep that was left behind gets brought right back in.
+				if (kd > fN * 0.6) { furthest = this.collecting; fd = kd; forced = true; reason = 'behind'; }
+			} else if (kd > fN * 0.9) { furthest = this.collecting; fd = kd; }
 		}
 		// Hysteresis: once driving, put up with a bit of spread rather than dithering.
 		var threshold = flank && this.rule === 'drive' ? fN * 1.25 : fN;
-		if (furthest && fd > threshold) {
+		if (!forced && behind && bd > fN * 0.6 && !(furthest && fd > threshold)) { furthest = behind; fd = bd; forced = true; reason = 'behind'; }
+		if (furthest && (fd > threshold || forced)) {
 			this.rule = 'collect';
 			this.collecting = furthest;
 			this.collectingSheep = furthest;
+			this.collectReason = reason;
 			var cx = (furthest.x - gx) / fd, cy = (furthest.y - gy) / fd;
 			// Stand off a few body-lengths behind the straggler, not on top of it
 			// (the paper's dog aims for just one body-length behind).
 			var back1 = this.level.paperDog ? R_A : R_A * 3;
-			return { x: furthest.x + cx * back1, y: furthest.y + cy * back1 };
+			if (!flank) return { x: furthest.x + cx * back1, y: furthest.y + cy * back1 };
+			return this.collectStand(furthest, cx, cy, back1);
 		}
 		this.collecting = null;
 		this.collectingSheep = null;
@@ -399,19 +425,52 @@
 		return { x: gx - ux * back, y: gy - uy * back };
 	};
 
+	// Where to stand to fetch a straggler. The paper's dog stands directly beyond
+	// it, away from the flock. Against a fence or in a corner that pins the sheep,
+	// so this dog tries a few angles and picks the one from which the sheep,
+	// running away from the dog, actually gets back towards the flock.
+	Sim.prototype.collectStand = function (sheep, cx, cy, back) {
+		var g = this.gcm, ideal = Math.atan2(cy, cx);
+		var d0 = len(sheep.x - g.x, sheep.y - g.y);
+		var offsets = [0, 0.35, -0.35, 0.7, -0.7, 1.05, -1.05, 1.4, -1.4, 1.75, -1.75, 2.1, -2.1];
+		var best = null, bestScore = -Infinity;
+		for (var i = 0; i < offsets.length; i++) {
+			var a = ideal + offsets[i], ax = Math.cos(a), ay = Math.sin(a);
+			var st = { x: sheep.x + ax * back, y: sheep.y + ay * back };
+			if (st.x < 1 || st.x > W - 1 || st.y < 1 || st.y > H - 1) continue;
+			var blocked = false;
+			for (var w = 0; w < this.walls.length; w++) {
+				var wl = this.walls[w];
+				if (crosses(sheep.x, sheep.y, st.x, st.y, wl[0], wl[1], wl[2], wl[3])) { blocked = true; break; }
+			}
+			if (blocked) continue;
+			// Where does the sheep end up if it runs from here? (Sliding along walls.)
+			var p = this.move(sheep.x, sheep.y, sheep.x - ax * 8, sheep.y - ay * 8, true);
+			var progress = d0 - len(p.x - g.x, p.y - g.y);
+			var room = len(p.x - sheep.x, p.y - sheep.y);
+			var score = progress + 0.3 * room - 1.5 * Math.abs(offsets[i]);
+			if (score > bestScore) { bestScore = score; best = st; }
+		}
+		return best || { x: sheep.x + cx * back, y: sheep.y + cy * back };
+	};
+
 	// Rule three (not in the paper): if something is in the way, aim for its edge.
-	Sim.prototype.routeAround = function (from, target, extra, onlyExtra) {
+	Sim.prototype.routeAround = function (from, target, extra, onlyExtra, pad) {
+		pad = pad || 0;
 		var dx = target.x - from.x, dy = target.y - from.y, dl = len(dx, dy);
 		var ux = dx / dl, uy = dy / dl, nx = -uy, ny = ux;
 		var best = null, bestT = 2;
 		var circles = onlyExtra ? extra : (extra ? this.obstacles.circles.concat(extra) : this.obstacles.circles);
 		for (var i = 0; i < circles.length; i++) {
-			var o = circles[i], margin = o.r + 2.5;
+			var o = circles[i], margin = o.r + 2.5 + pad;
 			var sd = segDist(o.x, o.y, from.x, from.y, target.x, target.y);
 			if (sd.d < margin && sd.t > 0 && sd.t < 1 && sd.t < bestT) {
 				var s = (o.x - from.x) * nx + (o.y - from.y) * ny;
 				var sign = s >= 0 ? -1 : 1;
-				best = { x: o.x + nx * sign * (margin + 1), y: o.y + ny * sign * (margin + 1) };
+				var cand = { x: o.x + nx * sign * (margin + 1), y: o.y + ny * sign * (margin + 1) };
+				// Not off the edge of the field: go round the other side instead.
+				if (pad > 0 && (cand.x < 2 || cand.x > W - 2 || cand.y < 2 || cand.y > H - 2)) cand = { x: o.x - nx * sign * (margin + 1), y: o.y - ny * sign * (margin + 1) };
+				best = cand;
 				bestT = sd.t;
 			}
 		}
@@ -424,7 +483,7 @@
 			var c2 = len(from.x - e2.x, from.y - e2.y) + len(target.x - e2.x, target.y - e2.y);
 			var e = c1 <= c2 ? e1 : e2, other = c1 <= c2 ? e2 : e1;
 			var ax = e.x - other.x, ay = e.y - other.y, al = len(ax, ay);
-			var wp = { x: e.x + ax / al * 3, y: e.y + ay / al * 3 };
+			var wp = { x: e.x + ax / al * (3 + pad), y: e.y + ay / al * (3 + pad) };
 			var t = segDist(wp.x, wp.y, from.x, from.y, target.x, target.y).t;
 			if (t < bestT) { best = wp; bestT = t; }
 		}
@@ -510,28 +569,41 @@
 		var dx = goal.x - dog.x, dy = goal.y - dog.y, d = len(dx, dy);
 		this.creeping = false;
 		if (d < 0.5) return;
-		var speed = DOG_SPEED;
+		var speed = DOG_SPEED, hx0 = dx / d, hy0 = dy / d;
 		if (this.mode === 'collie') {
 			speed *= this.level.dogSpeed || 1;
-			var nearest = Infinity;
+			var nearest = Infinity, nearestSheep = null;
 			for (var i = 0; i < this.sheep.length; i++) {
 				var s = this.sheep[i];
 				if (s.penned) continue;
 				var sdn = len(s.x - dog.x, s.y - dog.y);
-				if (sdn < nearest) nearest = sdn;
+				if (sdn < nearest) { nearest = sdn; nearestSheep = s; }
 			}
 			if (this.level.paperDog) {
 				// As published: within 3 r_a of any sheep the shepherd does not move.
 				if (nearest < 3 * R_A) return;
 			} else {
-				// Ours creeps up on sheep and stops short of touching them.
+				// Ours creeps up on sheep and stops short of touching them. Once it is
+				// that close it may still back off or go round, but never closes in.
 				var STOP = 4, CREEP = 10;
-				if (nearest <= STOP) { this.creeping = true; return; }
-				if (nearest < CREEP) { speed *= 0.15 + 0.85 * (nearest - STOP) / (CREEP - STOP); this.creeping = true; }
+				if (nearest <= STOP) {
+					this.creeping = true;
+					speed *= 0.3;
+					// Straight on if that doesn't close in; otherwise round the sheep,
+					// whichever way is nearer the goal; otherwise hold.
+					var tx = -(nearestSheep.y - dog.y) / nearest, ty = (nearestSheep.x - dog.x) / nearest;
+					if (tx * hx0 + ty * hy0 < 0) { tx = -tx; ty = -ty; }
+					var dirs = [[hx0, hy0], [tx, ty]], ok = false;
+					for (var di = 0; di < dirs.length && !ok; di++) {
+						var bx = dog.x + dirs[di][0] * speed, by = dog.y + dirs[di][1] * speed;
+						if (len(nearestSheep.x - bx, nearestSheep.y - by) >= nearest - 1e-6) { hx0 = dirs[di][0]; hy0 = dirs[di][1]; ok = true; }
+					}
+					if (!ok) return;
+				} else if (nearest < CREEP) { speed *= 0.15 + 0.85 * (nearest - STOP) / (CREEP - STOP); this.creeping = true; }
 			}
 		}
 		var noise = this.mode === 'collie' ? E : 0, na = Math.random() * Math.PI * 2;
-		var hx = dx / d + noise * Math.cos(na), hy = dy / d + noise * Math.sin(na);
+		var hx = hx0 + noise * Math.cos(na), hy = hy0 + noise * Math.sin(na);
 		var hl = len(hx, hy); hx /= hl; hy /= hl;
 		dog.hx = hx; dog.hy = hy;
 		var p = this.move(dog.x, dog.y, dog.x + hx * Math.min(speed, d), dog.y + hy * Math.min(speed, d), false);
@@ -765,7 +837,9 @@
 				}
 				lastState = sim.state;
 				draw(ctx, sim, px, !workEl || workEl.checked);
-				if (statusEl) statusEl.textContent = (sim.creeping && sim.rule === 'collect') ? 'COLLECT: creeping up, letting it make up its mind' : (RULE_TEXT[sim.rule] || '');
+				if (statusEl) statusEl.textContent = (sim.creeping && sim.rule === 'collect') ? 'COLLECT: creeping up, letting it make up its mind'
+					: (sim.rule === 'collect' && sim.collectReason === 'behind') ? 'COLLECT: one got left behind, go back for it'
+					: (RULE_TEXT[sim.rule] || '');
 				if (countEl) countEl.textContent = sim.pennedCount + ' / ' + sim.sheep.length + ' penned';
 				if (timeEl) timeEl.textContent = (sim.ticks / TICKS_PER_SEC).toFixed(1) + 's';
 			}

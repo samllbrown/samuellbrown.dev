@@ -2,24 +2,24 @@
 title: The collie is the algorithm
 publishDate: 2026-08-25 00:00:00
 description: |
-  A sheepdog's whole strategy fits in two rules. I built the simulation, then made the sheep awkward and the field difficult, and raced the dog. Play along. It's harder than it looks.
+  Someone worked out that you can simulate a sheepdog with two rules. I didn't believe it, so I built it, then kept adding awkward sheep and obstacles to see when it would break. There are four simulations in here you can play against.
 tags:
   - Farming
   - Simulation
   - AI
 ---
 
-I love collies. On my most recent holiday to North Devon we went to a falconry and sheepdog show, and I watched a collie work what I can only describe as magic: one dog, a scattered flock, a shepherd giving the odd whistle, and a minute later every sheep was in a pen that none of them wanted to be in. I got a question I couldn't put down.
+I love collies. On our last holiday to North Devon we went to a falconry and sheepdog show, and I spent most of it watching one dog move a scattered flock across a field and into a pen while the shepherd stood at the far end doing the occasional whistle. The sheep clearly didn't want to go in, but they went in anyway in about a minute, and I spent the rest of the day wondering how the dog actually does it.
 
-I've always joked that collies are better than maths because they have *instinct*, and that whatever is going on in that dog, you couldn't write it down. It turns out someone tried. In 2014 a team from Swansea University, the Royal Veterinary College and Uppsala fitted 46 sheep and a working farm dog with GPS backpacks, recorded them, and asked: what's the *least* a simulated dog needs to know to reproduce those tracks?
+I've always joked that collies are better than maths because they run on instinct, and whatever is going on in that dog's head isn't something you could write down, but it turns out someone had a go at doing exactly that. In 2014 a group from Swansea University, the Royal Veterinary College and Uppsala put GPS backpacks on 46 sheep and a working farm dog, recorded a load of herding, and then tried to find the simplest set of rules for a simulated dog that would produce the same tracks.
 
-The answer was two rules. I found that hard to believe, so I built it. Then I made it harder.
+They got it down to two rules, which I didn't really believe, so I built it to see for myself. Once it was working I kept adding things (awkward sheep, obstacles, more sheep) to find out where it would fall over.
 
-## Demo 1: The paper
+## The model from the paper
 
-The model exactly as published. Thirty sheep, an open field, a pen. The purple arrow is the dog, running two rules. Watch the status line flip between **COLLECT** and **DRIVE**. The dashed circle is the flock's "cohesive enough" radius; the small ring is where the dog has decided to go *this instant*.
+This is the model as it appears in the paper with nothing added, so thirty sheep, an open field and a pen. The purple arrow is the dog, and the status line underneath shows which of the two rules it's currently following, **COLLECT** or **DRIVE**. The dashed circle is how tightly packed the flock needs to be before the dog is happy to start pushing, and the small ring is the spot the dog is currently trying to get to.
 
-Then hit **You drive** and be the dog yourself on the same flock. Your time goes on the board.
+If you press **You drive** you take over as the dog on the same flock, and it'll record how long you took next to the collie's time so you can compare.
 
 <div class="sheepdog" data-sheepdog="paper">
   <canvas aria-label="Sheepdog simulation: the two-rule model on an open field"></canvas>
@@ -40,7 +40,7 @@ Then hit **You drive** and be the dog yourself on the same flock. Your time goes
   </div>
 </div>
 
-Here's the entire dog:
+This is all the code the dog runs on.
 
 ```js title="collie.js"
 const gcm = centreOfMass(loose);
@@ -55,20 +55,22 @@ if (dist(straggler, gcm) > R_A * Math.pow(loose.length, 2 / 3)) {
 return pointBeyond(gcm, awayFrom(pen));
 ```
 
-It doesn't plan and it doesn't remember anything. Sixty times a second it asks whether the flock is tight enough, and runs to wherever the answer says. The sheep are just as simple: away from the dog, towards the neighbours, not too close to the neighbours, a bit of noise. The flocking you see comes from nothing more than that.
+There's no planning and no memory in there, it just checks sixty times a second whether the flock is tight enough and runs to wherever that check tells it to. The sheep aren't any more complicated either. Each one moves away from the dog, moves towards its neighbours, tries not to get too close to them, and wanders about a bit at random, and all of the flocking behaviour you see comes out of that.
 
-Most people can beat this dog. You can see the whole field, and you don't have to stop when you get close to a sheep. The collie does, because the real one did. You may also notice it doing something no real collie would: cutting across the *front* of the flock on its way to a straggler. Hold that thought.
+Most people can beat this version of the dog. You can see the whole field at once, and you don't have to slow down when you get near a sheep, whereas the simulated collie does because the real one in the study did. You might also notice it doing something a real collie wouldn't, which is running straight across the front of the flock on its way to a straggler. That comes up again in the second demo.
 
-## Demo 2: Sheep with minds of their own
+## Awkward sheep
 
-Real sheep aren't identical, so these have personalities:
+In the paper every sheep is identical, which real sheep obviously aren't, so for this one I gave them a few different personalities:
 
-- **Leaders** (orange ring) go where they like, and the flock drifts after them.
-- **Loners** hang off the edge and spook early.
-- **Old ewes** (grey) stand their ground. The dog has to come in close, stop, and eye them until they decide to move.
-- **Flighty ones** bolt early and overshoot.
+- **Leaders** (orange ring) wander off in whatever direction they fancy, and the rest of the flock tends to drift after them.
+- **Loners** hang around the edge of the flock and spook before anyone else does.
+- **Old ewes** (grey) don't move until they feel like it. The dog has to come in close, stop and stare at them for a while before they'll budge.
+- **Flighty ones** bolt as soon as the dog gets anywhere near, and run further than they need to.
 
-The paper's dog on this flock ran full circles, crossing between the sheep and the pen a fifth of the time. A real collie works the **far side**: it changes sides by going round the *back*, leaves alone a sheep that's already ahead, and finishes gathering one sheep before starting on another. So this dog has been given that sense of side (**FLANK** on the status line), and some manners: it stands off, creeps in, and never touches a sheep. It's also a young dog, running at 80% pace.
+When I put the paper's dog on this flock it kept running full circles around them, and about a fifth of the time it was between the sheep and the pen, which is the worst place for a dog to be. A real collie stays on the far side of the flock from where it wants them to go. If it needs to switch sides it goes round the back, it leaves alone any sheep that's already heading the right way, and it finishes bringing one sheep in before it goes after another. So I gave this dog some idea of which side it should be on (that's the **FLANK** state) and a bit of manners, so it keeps its distance, creeps in slowly and never actually touches a sheep. It's allowed to back off or walk round one it's close to, it just can't push in. It also won't drive on with a sheep behind it, it goes back for that one first. I also slowed it down to 80% pace, so it's a younger dog than the one in the first demo.
+
+The other thing it does differently is where it stands when it goes to fetch a straggler. The paper's dog stands directly beyond the sheep, on the far side from the flock, and that's fine in an open field. Against a fence or in a corner it's a disaster, because the dog ends up pinning the sheep in there. This dog tries a few spots around the sheep and picks the one it can actually get to from which the sheep, running away from it, ends up back with the flock.
 
 <div class="sheepdog" data-sheepdog="minds">
   <canvas aria-label="Sheepdog simulation: sheep with personalities"></canvas>
@@ -90,11 +92,11 @@ The paper's dog on this flock ran full circles, crossing between the sheep and t
   <div class="sheepdog-traits" data-role="traits"></div>
 </div>
 
-The surprise: loners and leaders cost the dog nothing. "Fetch the furthest sheep" already finds the troublemaker, because the troublemaker *is* the furthest sheep. The old ewes are what slow it down. They'll slow you down too.
+What I didn't expect was that the loners and leaders make no difference to the dog at all. The rule is "go and fetch the furthest sheep", and the sheep causing trouble is nearly always the furthest one anyway, so it gets dealt with without any special handling. The old ewes are the ones that slow it down, and if you have a go yourself you'll find they slow you down just as much.
 
-## Demo 3: The field fights back
+## Obstacles
 
-The paper has no obstacles, and its dog has no idea what one is: put a pond in the way and it presses against it until random noise slides it off, if it ever does. So I gave the dog a third rule, as dumb as the first two: **if the line to where you want to be crosses something, aim for its edge** (**GO ROUND**). The sheep get no rule at all. They're just pushed back by things, and the flock flows round like water.
+The field in the paper is completely empty, and the dog has no concept of an obstacle. If you put a pond in its way it runs into the edge and sits there pressing against it until the random noise happens to slide it off, which sometimes never happens. So I added a third rule, which is about as basic as the other two, and says that **if the straight line to where you want to go crosses something, aim for the edge of that thing instead** (**GO ROUND** on the status line). The dog applies the same rule to the flock, so if the wall is between the sheep and the pen it pushes them towards the end of the wall rather than straight at the middle of it. The sheep mostly didn't need a rule of their own, they just get pushed away from anything solid and the flock ends up flowing around obstacles by itself. The one thing I did give them is that they won't run themselves into a dead end, so a sheep that's been chased into the corner where a fence meets the edge of the field turns and runs along the fence instead of wedging itself in.
 
 <div class="sheepdog" data-sheepdog="field">
   <canvas aria-label="Sheepdog simulation: a field with a pond, wall and trees"></canvas>
@@ -115,11 +117,11 @@ The paper has no obstacles, and its dog has no idea what one is: put a pond in t
   </div>
 </div>
 
-On thirty identical fields the paper's dog got stuck three times; this one never did. When the paper's dog does get through it's no slower. The third rule doesn't make the dog faster. It makes it not get stuck.
+I ran both dogs on the same sixty fields. The paper's dog got stuck nine times out of sixty, and this one didn't get stuck at all. Interestingly, on the runs where the original dog did get through it wasn't any slower than the new one, so the third rule doesn't speed anything up, it just stops the dog getting wedged against a pond.
 
-## Demo 4: The whole farm
+## Everything at once
 
-Sixty sheep, personalities, obstacles, full pace. If you beat the dog here first go, send me the recording.
+Sixty sheep, all the personalities, obstacles, and the dog back at full pace. I haven't managed to beat it on this one yet. If you do it first time I'd genuinely like to see a recording.
 
 <div class="sheepdog" data-sheepdog="farm">
   <canvas aria-label="Sheepdog simulation: sixty sheep with personalities on an obstacle field"></canvas>
@@ -141,19 +143,20 @@ Sixty sheep, personalities, obstacles, full pace. If you beat the dog here first
   <div class="sheepdog-traits" data-role="traits"></div>
 </div>
 
-The dog wins here because it never chases a sheep for its own sake: only the furthest one, and only when the flock is loose enough to matter. A human chases stragglers, which is exactly what makes a flock split. Median 33 seconds over thirty runs, though about one flock in thirty still has it at work after a few minutes. That's what **New flock** is for.
+The reason the dog wins here is that it never goes after a sheep just because it's wandered off a bit. It only ever goes for the furthest one, and only when the flock has spread out enough that it actually matters. When a person drives, the natural thing to do is chase whichever sheep is straying, and that's usually what causes the flock to split in two. Over sixty runs the dog's median time was 31 seconds and the worst was about a minute and a half, usually because a leader wandered off to a far corner while the dog was busy at the other end. **New flock** gives you a different one if you want another go.
 
-## What I learned
+## Things I found out along the way
 
-- **Sticking together is the sheep's job.** If each sheep watches fewer than half the flock, no dog can pen them. Every failure I blamed on the dog was a property of the sheep.
-- **The pen needs a funnel and a gate.** Both are things the farmer provides. The dog was never meant to do the whole job.
-- **Which way round matters.** The paper's dog cuts across the front of the flock. Going round the back instead took the worst case from two minutes to one.
-- **Manners made it faster.** Standing off and never touching a sheep were added because the dog *looked* wrong. They halved the worst-case times, because a dog that doesn't barge doesn't pin sheep against walls.
-- **Most failures were dithering, not wrong rules.** Two stragglers, each marginally the furthest in turn. Every fix was *commitment*: pick a sheep and finish it, pick a way round and take it.
+- Most of the work is done by the sheep, not the dog. If each sheep pays attention to fewer than about half the flock, no dog can pen them, however clever it is. Nearly every time I thought the dog had a bug, the actual problem was in the sheep.
+- The pen needs a funnel and a gate, and both of those are the farmer's job. Without them the dog can get the flock right up to the entrance and still not get them in.
+- Which way round the dog goes matters a lot. The paper's dog cuts across the front of the flock; making it go round the back instead halved the worst-case time, from about two minutes down to one.
+- I added the standing-off and not-touching-sheep behaviour purely because the dog looked wrong without it, and it turned out to make it faster as well. A dog that barges in tends to pin sheep against walls and then has to sort out the mess it's made.
+- Corners were the worst of it. A sheep pressed into the angle where a fence meets the edge of the field would just sit there, and so would the dog, because it was standing exactly where it pinned the sheep in and its manners wouldn't let it move. Fixing that wasn't a new rule for fetching, it was the dog picking a spot to stand from which the sheep has somewhere to run. That one change took the worst time on the flock with personalities from eighty seconds down to thirty five.
+- Most of the remaining failures were the dog dithering rather than the rules being wrong. The classic case is two stragglers on opposite sides of the flock that take turns being the furthest, so the dog runs back and forth between them forever. Every fix I made was some version of making it commit, so pick a sheep and finish it, or pick a side of the pond and go round it.
 
-So my joke was wrong, but only just. The collie isn't better than maths. The collie *is* the maths, bred into it over a few hundred years until it became instinct.
+So I suppose my joke about collies being better than maths wasn't quite right. The collie is doing the maths, it's just that a few hundred years of breeding have turned it into something the dog doesn't have to think about.
 
-We write three-thousand-word instructions for systems that, when you watch what actually made the difference, needed two lines. Next time I reach for a planning layer I'm going to spend an afternoon watching the thing work first, and ask what the two rules are.
+The thing I keep coming back to is how little of what I added actually mattered. Loads of it was tweaking, and the bits that made a difference would fit on a postcard. It's made me a bit suspicious of the long, detailed instructions I write for systems at work. Next time, I think I'll spend an afternoon watching the thing first and see if I can find the two rules that are actually doing the work.
 
 <script src="/sim/sheepdog.js" data-astro-rerun></script>
 <style>
