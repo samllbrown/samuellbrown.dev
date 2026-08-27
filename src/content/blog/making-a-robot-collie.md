@@ -98,7 +98,7 @@ The best one I got, evolved properly on a machine: three batches of forty-eight,
 
 </details>
 
-Over sixty fresh flocks it penned the lot every time, median 11.1 seconds and worst 14.9, against 16.1 and 32.3 for the paper's dog and 12.5 and 17.6 for the collie I wrote by hand last time. It stays behind the flock the whole time, runs flat out, and never fetches a straggler. It gets behind the flock in line with the pen and pushes, and on this field that's enough.
+Over sixty fresh flocks it penned the lot every time, median 10.5 seconds and worst 14.5, against 16.1 and 32.3 for the paper's dog and 12.5 and 17.6 for the collie I wrote by hand last time. It stays behind the flock the whole time, runs flat out, and never fetches a straggler. It gets behind the flock in line with the pen and pushes, and on this field that's enough.
 
 ## Away from home
 
@@ -155,7 +155,7 @@ The same dog on the two harder fields from last time, against my hand-written co
 
 </details>
 
-Forty-five full pens out of sixty on the awkward flock, and what beats it is the leader: it takes a few sheep off, and this dog never goes after anyone. The obstacle field it mostly copes with, 54 out of 60, because the sheep flow round the pond and the wall on their own and a dog pushing from behind gets carried round with them. When it fails there, it's pressed against the wall with the flock on the other side, which is what the paper's dog did with the pond last time.
+Forty-one full pens out of sixty on the awkward flock, and what beats it is the leader: it takes a few sheep off, and this dog never goes after anyone. The obstacle field it mostly copes with, 55 out of 60, because the sheep flow round the pond and the wall on their own and a dog pushing from behind gets carried round with them. When it fails there, it's pressed against the wall with the flock on the other side, which is what the paper's dog did with the pond last time.
 
 ## Training it on the harder fields
 
@@ -244,7 +244,7 @@ The fix is the one that made real collies: put the harder fields in the training
 
 </details>
 
-On the obstacle field it's as good as the collie now: sixty out of sixty. On the awkward flock it goes from forty-five to fifty-seven, a second and a half behind the collie. The farm it gets thirty-nine times out of sixty, with fifty-one of the sixty sheep in on average, where the open-field dog managed twelve. Not the collie, but a working dog.
+On the obstacle field it's as good as the collie now: sixty out of sixty. On the awkward flock it goes from forty-one to fifty-six, a couple of seconds behind the collie. The farm it gets thirty-six times out of sixty, with fifty of the sixty sheep in on average, where the open-field dog managed nine. Not the collie, but a working dog.
 
 ## What it's thinking
 
@@ -276,7 +276,7 @@ The paper's dog tells you what it's doing: the status line says COLLECT or DRIVE
   </div>
 </div>
 
-Two things stand out. First, a third of the time it isn't doing either of the paper's rules: it reads as DRIVE about 40% of the time and COLLECT about 30%, and the rest it's going wide round the side of the flock, which is how it gets behind them without cutting across the front. Tick "workings" and you can see it: C and D are the two spots the paper's dog would be running to, the white line is where this dog is going. Second, which neurons do the work. Three of the ten sit pinned at 1 or −1 the whole run. The heading mostly comes from h7, which has the biggest weights on the output, and if you watch it against "nearest d" you can more or less see the rule: keep the nearest sheep at the distance it likes, and go.
+Two things stand out. First, a third of the time it isn't doing either of the paper's rules: it reads as DRIVE and COLLECT about a third of the time each, and the rest it's going wide round the side of the flock, which is how it gets behind them without cutting across the front. Tick "workings" and you can see it: C and D are the two spots the paper's dog would be running to, the white line is where this dog is going. Second, which neurons do the work. Three of the ten sit pinned at 1 or −1 the whole run. The heading mostly comes from h7, which has the biggest weights on the output, and if you watch it against "nearest d" you can more or less see the rule: keep the nearest sheep at the distance it likes, and go.
 
 ## The numbers
 
@@ -313,8 +313,8 @@ Three batches of forty-eight on the open field. One had a dog that penned a whol
 <div class="robot-table-wrap"><table class="robot-table">
 <thead><tr><th>dog</th><th class="num">penned all</th><th class="num">median</th><th class="num">worst</th><th class="num">behind the flock</th><th class="num">near a sheep</th></tr></thead>
 <tbody>
-<tr><td>robot collie, open field</td><td class="num">60 / 60</td><td class="num">11.1s</td><td class="num">14.9s</td><td class="num">99%</td><td class="num">2%</td></tr>
-<tr><td>robot collie, best</td><td class="num">60 / 60</td><td class="num">10.7s</td><td class="num">16.7s</td><td class="num">100%</td><td class="num">2%</td></tr>
+<tr><td>robot collie, open field</td><td class="num">60 / 60</td><td class="num">10.5s</td><td class="num">14.5s</td><td class="num">98%</td><td class="num">2%</td></tr>
+<tr><td>robot collie, best</td><td class="num">60 / 60</td><td class="num">10.7s</td><td class="num">14.4s</td><td class="num">100%</td><td class="num">2%</td></tr>
 <tr><td>my collie</td><td class="num">60 / 60</td><td class="num">12.5s</td><td class="num">17.6s</td><td class="num">87%</td><td class="num">4%</td></tr>
 <tr><td>the paper's dog</td><td class="num">59 / 60</td><td class="num">16.1s</td><td class="num">32.3s</td><td class="num">71%</td><td class="num">14%</td></tr>
 </tbody></table></div>
@@ -338,7 +338,7 @@ Three batches of forty-eight on the open field. One had a dog that penned a whol
 <path d="M44 16 V240 H624" fill="none" stroke="rgba(255,255,255,0.14)"/>
 <text x="624" y="274" fill="#8490b5" text-anchor="end">flocks, sorted by that dog's time</text>
 <text transform="translate(12 16) rotate(-90)" fill="#8490b5" text-anchor="end">seconds</text>
-<path d="M53.7 195.4 L63.3 192.5 L73.0 190.5 L82.7 189.5 L92.3 187.6 L102.0 187.3 L111.7 187.3 L121.3 187.1 L131.0 187.1 L140.7 187.0 L150.3 186.9 L160.0 186.8 L169.7 185.6 L179.3 185.6 L189.0 184.9 L198.7 184.7 L208.3 184.7 L218.0 184.6 L227.7 182.9 L237.3 182.1 L247.0 181.5 L256.7 181.1 L266.3 181.0 L276.0 180.7 L285.7 180.5 L295.3 180.3 L305.0 180.2 L314.7 178.8 L324.3 178.0 L334.0 177.7 L343.7 177.6 L353.3 176.7 L363.0 176.5 L372.7 176.4 L382.3 176.3 L392.0 175.9 L401.7 175.8 L411.3 175.6 L421.0 175.1 L430.7 174.8 L440.3 174.8 L450.0 174.7 L459.7 174.6 L469.3 174.2 L479.0 173.8 L488.7 173.6 L498.3 173.6 L508.0 173.5 L517.7 173.2 L527.3 173.1 L537.0 172.7 L546.7 171.1 L556.3 170.8 L566.0 170.4 L575.7 169.9 L585.3 169.3 L595.0 168.9 L604.7 165.9 L614.3 165.4 L624.0 156.7" fill="none" stroke="#a93fe0" stroke-width="2" stroke-opacity="1" stroke-linejoin="round"><title>robot collie</title></path>
+<path d="M53.7 193.1 L63.3 192.2 L73.0 191.0 L82.7 189.8 L92.3 189.5 L102.0 188.8 L111.7 187.4 L121.3 186.8 L131.0 186.7 L140.7 186.1 L150.3 186.0 L160.0 185.7 L169.7 185.5 L179.3 185.4 L189.0 185.0 L198.7 184.6 L208.3 184.5 L218.0 184.1 L227.7 184.0 L237.3 183.5 L247.0 183.3 L256.7 183.2 L266.3 183.0 L276.0 181.9 L285.7 181.7 L295.3 181.6 L305.0 181.4 L314.7 181.3 L324.3 181.2 L334.0 181.1 L343.7 180.8 L353.3 180.2 L363.0 179.8 L372.7 179.8 L382.3 179.3 L392.0 179.0 L401.7 177.7 L411.3 177.4 L421.0 176.8 L430.7 176.7 L440.3 176.3 L450.0 175.7 L459.7 175.2 L469.3 175.0 L479.0 173.3 L488.7 172.1 L498.3 171.7 L508.0 171.6 L517.7 171.5 L527.3 171.5 L537.0 171.4 L546.7 170.7 L556.3 169.9 L566.0 169.1 L575.7 169.0 L585.3 168.9 L595.0 167.9 L604.7 167.8 L614.3 165.7 L624.0 158.8" fill="none" stroke="#a93fe0" stroke-width="2" stroke-opacity="1" stroke-linejoin="round"><title>robot collie</title></path>
 <path d="M53.7 194.0 L63.3 193.4 L73.0 191.0 L82.7 190.3 L92.3 188.9 L102.0 188.1 L111.7 186.5 L121.3 186.3 L131.0 185.0 L140.7 182.7 L150.3 181.9 L160.0 181.9 L169.7 181.8 L179.3 181.3 L189.0 180.4 L198.7 180.0 L208.3 179.5 L218.0 179.1 L227.7 178.8 L237.3 178.1 L247.0 177.5 L256.7 177.3 L266.3 177.3 L276.0 176.3 L285.7 174.9 L295.3 174.3 L305.0 173.9 L314.7 173.5 L324.3 171.6 L334.0 170.5 L343.7 169.5 L353.3 169.0 L363.0 169.0 L372.7 167.9 L382.3 167.3 L392.0 167.1 L401.7 166.5 L411.3 166.4 L421.0 166.2 L430.7 164.7 L440.3 164.0 L450.0 163.7 L459.7 161.6 L469.3 161.1 L479.0 159.0 L488.7 158.8 L498.3 158.2 L508.0 158.1 L517.7 158.1 L527.3 158.1 L537.0 158.0 L546.7 157.8 L556.3 155.8 L566.0 153.9 L575.7 153.8 L585.3 152.5 L595.0 144.7 L604.7 143.9 L614.3 143.1 L624.0 141.5" fill="none" stroke="#35a066" stroke-width="2" stroke-opacity="1" stroke-linejoin="round"><title>my collie</title></path>
 <path d="M53.7 199.0 L63.3 189.7 L73.0 187.8 L82.7 185.5 L92.3 181.4 L102.0 179.6 L111.7 178.4 L121.3 177.4 L131.0 177.3 L140.7 171.5 L150.3 171.2 L160.0 168.6 L169.7 168.0 L179.3 168.0 L189.0 167.9 L198.7 167.7 L208.3 167.7 L218.0 166.9 L227.7 166.2 L237.3 166.1 L247.0 164.9 L256.7 163.6 L266.3 160.5 L276.0 159.2 L285.7 159.1 L295.3 152.1 L305.0 151.2 L314.7 150.8 L324.3 150.4 L334.0 150.0 L343.7 148.3 L353.3 147.2 L363.0 146.9 L372.7 146.6 L382.3 145.7 L392.0 145.0 L401.7 144.9 L411.3 144.8 L421.0 142.7 L430.7 142.2 L440.3 140.4 L450.0 136.9 L459.7 136.1 L469.3 134.1 L479.0 133.9 L488.7 133.7 L498.3 133.6 L508.0 132.2 L517.7 132.0 L527.3 131.5 L537.0 127.0 L546.7 113.3 L556.3 108.1 L566.0 103.5 L575.7 101.7 L585.3 99.4 L595.0 97.8 L604.7 93.6 L614.3 58.9" fill="none" stroke="#c97c12" stroke-width="2" stroke-opacity="1" stroke-linejoin="round"><title>the paper's dog</title></path>
 </svg>
@@ -354,15 +354,15 @@ Switching off one thing it can see at a time, and re-running it on thirty flocks
 <tbody>
 <tr><td>nothing (the dog as evolved)</td><td class="num">2.02</td><td class="num">30 / 30</td></tr>
 <tr><td>nearest sheep, how far</td><td class="num">0.19</td><td class="num">0 / 30</td></tr>
-<tr><td>nearest obstacle</td><td class="num">0.51</td><td class="num">6 / 30</td></tr>
-<tr><td>flock centre</td><td class="num">1.75</td><td class="num">27 / 30</td></tr>
+<tr><td>nearest obstacle</td><td class="num">0.32</td><td class="num">3 / 30</td></tr>
+<tr><td>flock centre</td><td class="num">1.69</td><td class="num">26 / 30</td></tr>
 <tr><td>nearest sheep speed</td><td class="num">1.93</td><td class="num">29 / 30</td></tr>
+<tr><td>how spread out</td><td class="num">1.99</td><td class="num">30 / 30</td></tr>
+<tr><td>nearest sheep, where</td><td class="num">2.00</td><td class="num">30 / 30</td></tr>
 <tr><td>flock to pen</td><td class="num">2.00</td><td class="num">30 / 30</td></tr>
 <tr><td>furthest sheep</td><td class="num">2.00</td><td class="num">30 / 30</td></tr>
-<tr><td>nearest sheep, where</td><td class="num">2.00</td><td class="num">30 / 30</td></tr>
-<tr><td>how spread out</td><td class="num">2.01</td><td class="num">30 / 30</td></tr>
-<tr><td>flock speed</td><td class="num">2.02</td><td class="num">30 / 30</td></tr>
 <tr><td>share still loose</td><td class="num">2.02</td><td class="num">30 / 30</td></tr>
+<tr><td>flock speed</td><td class="num">2.02</td><td class="num">30 / 30</td></tr>
 </tbody></table></div>
 <!-- /TABLE -->
 
@@ -372,17 +372,17 @@ Switch off where the pen is, the furthest sheep, how spread out the flock is, or
 <div class="robot-table-wrap"><table class="robot-table">
 <thead><tr><th>field</th><th class="num">dog</th><th class="num">penned all</th><th class="num">sheep in, average</th><th class="num">median</th></tr></thead>
 <tbody>
-<tr><td>awkward flock (36)</td><td class="num">robot collie, open field</td><td class="num">45 / 60</td><td class="num">28.1</td><td class="num">14.8s</td></tr>
-<tr><td></td><td class="num">robot collie, retrained</td><td class="num">57 / 60</td><td class="num">34.8</td><td class="num">19.1s</td></tr>
-<tr><td></td><td class="num">robot collie, best</td><td class="num">59 / 60</td><td class="num">35.5</td><td class="num">15.8s</td></tr>
+<tr><td>awkward flock (36)</td><td class="num">robot collie, open field</td><td class="num">41 / 60</td><td class="num">25.6</td><td class="num">16.2s</td></tr>
+<tr><td></td><td class="num">robot collie, retrained</td><td class="num">56 / 60</td><td class="num">34.9</td><td class="num">19.4s</td></tr>
+<tr><td></td><td class="num">robot collie, best</td><td class="num">58 / 60</td><td class="num">35.0</td><td class="num">17.9s</td></tr>
 <tr><td></td><td class="num">my collie</td><td class="num">60 / 60</td><td class="num">36.0</td><td class="num">17.7s</td></tr>
-<tr><td>pond, wall and trees (30)</td><td class="num">robot collie, open field</td><td class="num">54 / 60</td><td class="num">27.0</td><td class="num">15.8s</td></tr>
-<tr><td></td><td class="num">robot collie, retrained</td><td class="num">60 / 60</td><td class="num">30.0</td><td class="num">14.9s</td></tr>
-<tr><td></td><td class="num">robot collie, best</td><td class="num">60 / 60</td><td class="num">30.0</td><td class="num">13.3s</td></tr>
+<tr><td>pond, wall and trees (30)</td><td class="num">robot collie, open field</td><td class="num">55 / 60</td><td class="num">27.5</td><td class="num">16.4s</td></tr>
+<tr><td></td><td class="num">robot collie, retrained</td><td class="num">60 / 60</td><td class="num">30.0</td><td class="num">14.7s</td></tr>
+<tr><td></td><td class="num">robot collie, best</td><td class="num">60 / 60</td><td class="num">30.0</td><td class="num">13.4s</td></tr>
 <tr><td></td><td class="num">my collie</td><td class="num">60 / 60</td><td class="num">30.0</td><td class="num">14.1s</td></tr>
-<tr><td>the farm (60, everything)</td><td class="num">robot collie, open field</td><td class="num">12 / 60</td><td class="num">20.6</td><td class="num">25.6s</td></tr>
-<tr><td></td><td class="num">robot collie, retrained</td><td class="num">39 / 60</td><td class="num">51.0</td><td class="num">30.4s</td></tr>
-<tr><td></td><td class="num">robot collie, best</td><td class="num">52 / 60</td><td class="num">55.5</td><td class="num">31.5s</td></tr>
+<tr><td>the farm (60, everything)</td><td class="num">robot collie, open field</td><td class="num">9 / 60</td><td class="num">22.7</td><td class="num">45.5s</td></tr>
+<tr><td></td><td class="num">robot collie, retrained</td><td class="num">36 / 60</td><td class="num">50.0</td><td class="num">30.3s</td></tr>
+<tr><td></td><td class="num">robot collie, best</td><td class="num">50 / 60</td><td class="num">54.3</td><td class="num">26.8s</td></tr>
 <tr><td></td><td class="num">my collie</td><td class="num">60 / 60</td><td class="num">60.0</td><td class="num">27.9s</td></tr>
 </tbody></table></div>
 <!-- /TABLE -->
@@ -395,12 +395,12 @@ The retrained dog is a different animal: it's useless without the nearest sheep'
 <tbody>
 <tr><td>the paper's dog, open field</td><td class="num">51%</td><td class="num">48%</td><td class="num">1%</td></tr>
 <tr><td>my collie, open field</td><td class="num">50%</td><td class="num">36%</td><td class="num">14%</td></tr>
-<tr><td>robot collie (open field), open field</td><td class="num">38%</td><td class="num">30%</td><td class="num">32%</td></tr>
-<tr><td>robot collie (open field), awkward flock</td><td class="num">30%</td><td class="num">24%</td><td class="num">45%</td></tr>
+<tr><td>robot collie (open field), open field</td><td class="num">37%</td><td class="num">32%</td><td class="num">32%</td></tr>
+<tr><td>robot collie (open field), awkward flock</td><td class="num">29%</td><td class="num">25%</td><td class="num">46%</td></tr>
 <tr><td>robot collie (retrained), obstacle field</td><td class="num">25%</td><td class="num">24%</td><td class="num">51%</td></tr>
-<tr><td>robot collie (retrained), awkward flock</td><td class="num">25%</td><td class="num">28%</td><td class="num">47%</td></tr>
-<tr><td>robot collie (best), awkward flock</td><td class="num">31%</td><td class="num">29%</td><td class="num">39%</td></tr>
-<tr><td>robot collie (best), the farm</td><td class="num">29%</td><td class="num">27%</td><td class="num">43%</td></tr>
+<tr><td>robot collie (retrained), awkward flock</td><td class="num">24%</td><td class="num">28%</td><td class="num">48%</td></tr>
+<tr><td>robot collie (best), awkward flock</td><td class="num">29%</td><td class="num">31%</td><td class="num">40%</td></tr>
+<tr><td>robot collie (best), the farm</td><td class="num">28%</td><td class="num">28%</td><td class="num">44%</td></tr>
 </tbody></table></div>
 <!-- /TABLE -->
 
@@ -410,7 +410,8 @@ The paper's dog reads as one of its own two rules 99% of the time, which is the 
 
 - Three batches per dog is enough to see they don't all get there at the same speed and not enough to say how often one gets stuck.
 - The inputs are mine, and the dog can only build rules out of what I gave it.
-- The turning limit and taking the ewes out both happened after the dogs were evolved. I re-evolved with the limit in from the start and got the same dogs back; with the ewes in, the retrained dog gets 37 of 60 awkward flocks instead of 57.
+- The turning limit and taking the ewes out both happened after the dogs were evolved. I re-evolved with the limit in from the start and got the same dogs back; with the ewes in, the retrained dog gets 37 of 60 awkward flocks instead of 56.
+- The dog's movement is smoothed (no per-tick noise, and the network's requested heading averaged over a few ticks) and that went in last, after everything was evolved, because the dogs looked twitchy. It changed no result by more than a flock or two, and the numbers on this page are with it.
 - "Reads as DRIVE" is my definition: within about 45 degrees of the spot the paper's dog would run to.
 
 ## How to make it the best dog
@@ -459,17 +460,17 @@ Here it is thinking next to one of the earlier dogs, on the same flock, same she
 <thead><tr><th>field</th><th class="num">best dog penned all</th><th class="num">sheep in, average</th><th class="num">best dog median</th><th class="num">my collie penned all</th><th class="num">my collie median</th></tr></thead>
 <tbody>
 <tr><td>open field (30)</td><td class="num">60 / 60</td><td class="num">30.0</td><td class="num">10.7s</td><td class="num">60 / 60</td><td class="num">12.5s</td></tr>
-<tr><td>awkward flock (36)</td><td class="num">59 / 60</td><td class="num">35.5</td><td class="num">15.8s</td><td class="num">60 / 60</td><td class="num">17.7s</td></tr>
-<tr><td>pond, wall and trees (30)</td><td class="num">60 / 60</td><td class="num">30.0</td><td class="num">13.3s</td><td class="num">60 / 60</td><td class="num">14.1s</td></tr>
-<tr><td>the farm (60)</td><td class="num">52 / 60</td><td class="num">55.5</td><td class="num">31.5s</td><td class="num">60 / 60</td><td class="num">27.9s</td></tr>
+<tr><td>awkward flock (36)</td><td class="num">58 / 60</td><td class="num">35.0</td><td class="num">17.9s</td><td class="num">60 / 60</td><td class="num">17.7s</td></tr>
+<tr><td>pond, wall and trees (30)</td><td class="num">60 / 60</td><td class="num">30.0</td><td class="num">13.4s</td><td class="num">60 / 60</td><td class="num">14.1s</td></tr>
+<tr><td>the farm (60)</td><td class="num">50 / 60</td><td class="num">54.3</td><td class="num">26.8s</td><td class="num">60 / 60</td><td class="num">27.9s</td></tr>
 </tbody></table></div>
 <!-- /TABLE -->
 
-Better than my collie on three fields out of four, and behind it only on the farm. And the thing I didn't expect: it ignores both of the new inputs. Switch off the sheep-left-behind and it does fractionally *better*. Everything it gained came from training on all four fields and starting from a dog that worked. It's also the first dog with no single point of failure: every earlier dog collapsed if you took away the nearest sheep's distance, and this one only dips whatever you take away.
+The fastest dog on the open field and the obstacle field, level with my collie on the awkward flock, and on the farm it pens fifty out of sixty to the collie's sixty, at about the same speed. And the thing I didn't expect: it ignores both of the new inputs. Switch off the sheep-left-behind and it does fractionally *better*. Everything it gained came from training on all four fields and starting from a dog that worked. It's also the first dog with no single point of failure: every earlier dog collapsed if you took away the nearest sheep's distance, and this one only dips whatever you take away.
 
 ## What I took from it
 
-I expected the paper's two rules and got a different dog each time. On the open field, evolution found something simpler than the paper: a one-input dog, faster than the hand-written one, useless anywhere else. On the harder fields it found something that looks at four or five things and still only half overlaps with the paper's rules. On all four fields it found a dog that's better than mine on three of them and doesn't lean on any one thing it can see. The lesson is the same one three times: it learns the fields it's given, and the way to get a general dog is to give it general fields, not cleverer eyes.
+I expected the paper's two rules and got a different dog each time. On the open field, evolution found something simpler than the paper: a one-input dog, faster than the hand-written one, useless anywhere else. On the harder fields it found something that looks at four or five things and still only half overlaps with the paper's rules. On all four fields it found a dog that's as good as mine or better on three of them and doesn't lean on any one thing it can see. The lesson is the same one three times: it learns the fields it's given, and the way to get a general dog is to give it general fields, not cleverer eyes.
 
 The other thing is that I can read the paper's dog, and I can only measure this one. I know what the robot collie does because I switched its inputs off one at a time and watched what broke, and because I wrote something that guesses what it's doing in the paper's words. It works better than mine and I understand it less, and I suspect that's the usual trade from here on.
 

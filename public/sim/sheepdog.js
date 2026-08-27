@@ -29,7 +29,9 @@
 	var RHO_O = 1.6;         // weight: repulsion from obstacles
 	var TICKS_PER_SEC = 60;
 	var STOP_OFF = 4;        // no dog of ours closes in on a sheep nearer than this
-	var CONFIG = { standoff: STOP_OFF, standoffSlow: 1, turnLimit: 0.15 }; // robot collie body; the experiments script can vary these
+	// Robot collie body; the experiments script can vary these.
+	//   noise: heading noise per tick (the collie's is E); smooth: how much of last tick's wish to keep (0 = none).
+	var CONFIG = { standoff: STOP_OFF, standoffSlow: 1, turnLimit: 0.15, noise: 0, smooth: 0.85 };
 
 	// Pen on the right, open on the left, with guide fences to the field edges.
 	var PEN = { x0: W - 24, x1: W - 3, y0: H / 2 - 12, y1: H / 2 + 12 };
@@ -563,11 +565,20 @@
 			// It can't turn on the spot: the heading swings towards what the network
 			// asked for by at most CONFIG.turnLimit radians a tick. Then the same
 			// noise as the collie.
-			var wantA = Math.atan2(act.hy, act.hx), haveA = Math.atan2(dog.hy, dog.hx);
+			// Smooth what the network asks for over a few ticks, so a brain that changes
+			// its mind every tick doesn't shake the dog. Then the turning limit, then noise.
+			var wx = act.hx, wy = act.hy;
+			if (CONFIG.smooth > 0) {
+				var pw = this.wish || { x: wx, y: wy };
+				wx = CONFIG.smooth * pw.x + (1 - CONFIG.smooth) * act.hx; wy = CONFIG.smooth * pw.y + (1 - CONFIG.smooth) * act.hy;
+				var wl = len(wx, wy); wx /= wl; wy /= wl;
+			}
+			this.wish = { x: wx, y: wy };
+			var wantA = Math.atan2(wy, wx), haveA = Math.atan2(dog.hy, dog.hx);
 			var dA = Math.atan2(Math.sin(wantA - haveA), Math.cos(wantA - haveA));
 			if (CONFIG.turnLimit > 0 && Math.abs(dA) > CONFIG.turnLimit) dA = dA > 0 ? CONFIG.turnLimit : -CONFIG.turnLimit;
 			var newA = haveA + dA;
-			var bx = Math.cos(newA) + E * Math.cos(bna), by = Math.sin(newA) + E * Math.sin(bna), bl = len(bx, by);
+			var bx = Math.cos(newA) + CONFIG.noise * Math.cos(bna), by = Math.sin(newA) + CONFIG.noise * Math.sin(bna), bl = len(bx, by);
 			bx /= bl; by /= bl;
 			// Same manners as the hand-written collie: it may not close in on a sheep
 			// it is already within STOP of. Straight on if that doesn't get closer,
