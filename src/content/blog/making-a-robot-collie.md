@@ -98,7 +98,7 @@ The best one I got, evolved properly on a machine: three batches of forty-eight,
 
 </details>
 
-Over sixty fresh flocks it penned the lot every time, median 10.5 seconds and worst 14.5, against 16.1 and 32.3 for the paper's dog and 12.5 and 17.6 for the collie I wrote by hand last time. It stays behind the flock the whole time, runs flat out, and never fetches a straggler. It gets behind the flock in line with the pen and pushes, and on this field that's enough.
+Over sixty fresh flocks it penned the lot every time, median 10.5 seconds and worst 14.5, against 16.1 and 32.3 for the paper's dog and 12.5 and 17.6 for the collie I wrote by hand last time. (Sixty flocks flatters it a little: on four hundred more it lost one and took over twenty seconds on three, so call it one in a hundred that goes wrong.) It stays behind the flock the whole time, runs flat out, and never fetches a straggler. It gets behind the flock in line with the pen and pushes, and on this field that's enough.
 
 ## Away from home
 
@@ -408,7 +408,7 @@ The paper's dog reads as one of its own two rules 99% of the time, which is the 
 
 ### Things I'd want to check
 
-- Three batches per dog is enough to see they don't all get there at the same speed and not enough to say how often one gets stuck.
+- Three batches per dog is enough to see they don't all get there at the same speed and not enough to say how often one gets stuck. Sixty test flocks is enough to rank the dogs and not enough to see the one-in-a-hundred failures; if a demo goes wrong on you, that's what you've hit.
 - The inputs are mine, and the dog can only build rules out of what I gave it.
 - The turning limit and taking the ewes out both happened after the dogs were evolved. I re-evolved with the limit in from the start and got the same dogs back; with the ewes in, the retrained dog gets 37 of 60 awkward flocks instead of 56.
 - The dog's movement is smoothed (no per-tick noise, and the network's requested heading averaged over a few ticks) and that went in last, after everything was evolved, because the dogs looked twitchy. It changed no result by more than a flock or two, and the numbers on this page are with it.
