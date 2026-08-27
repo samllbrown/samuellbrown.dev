@@ -15,8 +15,11 @@ The dog is a small neural network. It gets told where things are and it says whi
 
 ## What the dog gets
 
-The same body as the hand-written collie: it can't run faster, it can't turn faster (about a third of a turn a second), and it can't get closer than two sheep-widths to a sheep. Those are done by the world. Everything else it has to learn. It can see seventeen numbers, all measured from where it's standing:
+The same body as the hand-written collie: it can't run faster, it can't turn faster (about a third of a turn a second), and it can't get closer than two sheep-widths to a sheep. Those are done by the world. Everything else it has to learn. It can see seventeen numbers, all measured from where it's standing.
 
+<details class="demo-box">
+<summary><span class="demo-title">What the dog can see</span><span class="demo-desc">The seventeen numbers it gets, and why I gave it each one.</span><span class="demo-open">open</span></summary>
+<div class="demo-box-body">
 <div class="robot-table-wrap"><table class="robot-table">
 <thead><tr><th>what it sees</th><th>why I gave it that</th></tr></thead>
 <tbody>
@@ -30,6 +33,8 @@ The same body as the hand-written collie: it can't run faster, it can't turn fas
 <tr><td>how fast the nearest sheep is moving</td><td>so it can tell a sheep that's standing its ground from one that's going</td></tr>
 <tr><td>how fast the flock is moving</td><td>so it can tell whether what it's doing is working</td></tr>
 </tbody></table></div>
+</div>
+</details>
 
 Those go through ten neurons and come out as a direction and a speed. Two hundred weights, and the weights are the whole dog.
 
@@ -260,6 +265,10 @@ The paper's dog tells you what it's doing: the status line says COLLECT or DRIVE
       <div class="sheepdog-hud">
         <span data-role="tally"></span>
       </div>
+    <div class="sheepdog-controls">
+    <button type="button" data-action="new">New flock</button>
+    <label><input type="checkbox" data-role="work" checked /> workings</label>
+    </div>
     </div>
     <div class="robot-thoughts-panel">
       <div class="robot-label">what it sees</div>
@@ -269,10 +278,6 @@ The paper's dog tells you what it's doing: the status line says COLLECT or DRIVE
       <div class="robot-label">what it decided</div>
       <div class="robot-out" data-role="outputs"></div>
     </div>
-  </div>
-  <div class="sheepdog-controls">
-    <button type="button" data-action="new">New flock</button>
-    <label><input type="checkbox" data-role="work" checked /> workings</label>
   </div>
 </div>
 
@@ -346,8 +351,11 @@ Three batches of forty-eight on the open field. One had a dog that penned a whol
 <figcaption>Time to pen all thirty sheep on the same sixty flocks, each dog's runs sorted from fastest to slowest.</figcaption>
 </figure>
 
-Switching off one thing it can see at a time, and re-running it on thirty flocks:
+Switching off one thing it can see at a time, and re-running it on thirty flocks, says the same thing:
 
+<details class="demo-box">
+<summary><span class="demo-title">Switching the open-field dog's inputs off one at a time</span><span class="demo-desc">Thirty flocks on the open field, one input zeroed per row.</span><span class="demo-open">open</span></summary>
+<div class="demo-box-body">
 <!-- TABLE:ablation-open -->
 <div class="robot-table-wrap"><table class="robot-table">
 <thead><tr><th>switched off</th><th class="num">score</th><th class="num">penned all</th></tr></thead>
@@ -365,9 +373,14 @@ Switching off one thing it can see at a time, and re-running it on thirty flocks
 <tr><td>flock speed</td><td class="num">2.02</td><td class="num">30 / 30</td></tr>
 </tbody></table></div>
 <!-- /TABLE -->
+</div>
+</details>
 
 Switch off where the pen is, the furthest sheep, how spread out the flock is, or how fast anything is moving, and it still pens thirty out of thirty. Switch off how far the nearest sheep is and it's useless. (The obstacle input reads a constant on a field with no obstacles, and the dog uses it as a second bias.) So on the open field this is a one-input dog: keep the nearest sheep at the distance it likes and run. The pen is dead weight, because on this field the pen is always to the right.
 
+<details class="demo-box">
+<summary><span class="demo-title">Every dog on every field</span><span class="demo-desc">Sixty flocks each. Full pens, sheep in on average, and the median time.</span><span class="demo-open">open</span></summary>
+<div class="demo-box-body">
 <!-- TABLE:away -->
 <div class="robot-table-wrap"><table class="robot-table">
 <thead><tr><th>field</th><th class="num">dog</th><th class="num">penned all</th><th class="num">sheep in, average</th><th class="num">median</th></tr></thead>
@@ -386,9 +399,14 @@ Switch off where the pen is, the furthest sheep, how spread out the flock is, or
 <tr><td></td><td class="num">my collie</td><td class="num">60 / 60</td><td class="num">60.0</td><td class="num">27.9s</td></tr>
 </tbody></table></div>
 <!-- /TABLE -->
+</div>
+</details>
 
 The retrained dog is a different animal: it's useless without the nearest sheep's distance, like the first, but also without the flock centre or the pen, and it drops a fair bit without the two speed inputs. What it still doesn't use is the furthest sheep, which is the paper's collect rule, or the obstacle inputs. It gets round the pond the way the first dog does, by following the sheep round.
 
+<details class="demo-box">
+<summary><span class="demo-title">Each dog in the paper's words</span><span class="demo-desc">Share of the run spent heading for the COLLECT spot, the DRIVE spot, or neither.</span><span class="demo-open">open</span></summary>
+<div class="demo-box-body">
 <!-- TABLE:thoughts -->
 <div class="robot-table-wrap"><table class="robot-table">
 <thead><tr><th>dog, field</th><th class="num">DRIVE</th><th class="num">COLLECT</th><th class="num">neither</th></tr></thead>
@@ -403,16 +421,10 @@ The retrained dog is a different animal: it's useless without the nearest sheep'
 <tr><td>robot collie (best), the farm</td><td class="num">28%</td><td class="num">28%</td><td class="num">44%</td></tr>
 </tbody></table></div>
 <!-- /TABLE -->
+</div>
+</details>
 
 The paper's dog reads as one of its own two rules 99% of the time, which is the check that the reading works. The retrained robot is "neither" about half the time on both its fields. It isn't doing the paper's job in the paper's order; the two rules describe about half of what it does.
-
-### Things I'd want to check
-
-- Three batches per dog is enough to see they don't all get there at the same speed and not enough to say how often one gets stuck. Sixty test flocks is enough to rank the dogs and not enough to see the one-in-a-hundred failures; if a demo goes wrong on you, that's what you've hit.
-- The inputs are mine, and the dog can only build rules out of what I gave it.
-- The turning limit and taking the ewes out both happened after the dogs were evolved. I re-evolved with the limit in from the start and got the same dogs back; with the ewes in, the retrained dog gets 37 of 60 awkward flocks instead of 56.
-- The dog's movement is smoothed (no per-tick noise, and the network's requested heading averaged over a few ticks) and that went in last, after everything was evolved, because the dogs looked twitchy. It changed no result by more than a flock or two, and the numbers on this page are with it.
-- "Reads as DRIVE" is my definition: within about 45 degrees of the spot the paper's dog would run to.
 
 ## How to make it the best dog
 
@@ -420,9 +432,9 @@ That was the honest first attempt. Then I gave myself an hour of compute to make
 
 Here it is thinking next to one of the earlier dogs, on the same flock, same sheep, same field. Change the field and the other dog with the menus.
 
-<div class="sheepdog robot-compare" data-robot-compare="awkward">
+<div class="sheepdog robot-compare" data-robot-compare="paper">
   <div class="sheepdog-controls robot-compare-controls">
-    <label class="robot-gens">field <select data-role="level"><option value="awkward" selected>awkward flock</option><option value="farm2">the farm</option><option value="field">pond, wall and trees</option><option value="paper">open field</option></select></label>
+    <label class="robot-gens">field <select data-role="level"><option value="paper" selected>open field</option><option value="awkward">awkward flock</option><option value="field">pond, wall and trees</option><option value="farm2">the farm</option></select></label>
     <label class="robot-gens">against <select data-role="rival"><option value="open" selected>the open-field dog</option><option value="farm">the retrained dog</option></select></label>
     <button type="button" data-action="new">New flock</button>
     <label><input type="checkbox" data-role="work" checked /> workings</label>
@@ -470,9 +482,15 @@ The fastest dog on the open field and the obstacle field, level with my collie o
 
 ## What I took from it
 
-I expected the paper's two rules and got a different dog each time. On the open field, evolution found something simpler than the paper: a one-input dog, faster than the hand-written one, useless anywhere else. On the harder fields it found something that looks at four or five things and still only half overlaps with the paper's rules. On all four fields it found a dog that's as good as mine or better on three of them and doesn't lean on any one thing it can see. The lesson is the same one three times: it learns the fields it's given, and the way to get a general dog is to give it general fields, not cleverer eyes.
+Five dogs, in the order they turned up:
 
-The other thing is that I can read the paper's dog, and I can only measure this one. I know what the robot collie does because I switched its inputs off one at a time and watched what broke, and because I wrote something that guesses what it's doing in the paper's words. It works better than mine and I understand it less, and I suspect that's the usual trade from here on.
+- **The paper's dog.** Two rules, written down by people who watched a real one. Slowest of the lot, and the only one you can explain at a sheepdog show.
+- **My collie.** The paper's dog plus flanking, manners and a rule for obstacles, written by hand last time. Still the only dog that pens everything, everywhere.
+- **The open-field dog.** Evolved on one field. Faster than either hand-written dog there, uses one input, and falls apart anywhere else.
+- **The retrained dog.** Evolved on the awkward flock and the obstacle field. A working dog on both, and a long way off on the farm.
+- **The best dog.** The retrained dog carried on across all four fields at once. As good as my collie or better on three of them, and it ignored the extra eyes I gave it.
+
+The lesson is the same one three times: it learns the fields it's given, and the way to get a general dog is to give it general fields, not cleverer eyes.
 
 <script src="/sim/sheepdog.js" data-astro-rerun></script>
 <script src="/sim/robot-collie.js" data-astro-rerun></script>
@@ -488,6 +506,8 @@ The other thing is that I can read the paper's dog, and I can only measure this 
   .demo-box .demo-open { margin-left: auto; font-family: var(--font-mono); font-size: var(--text-sm); color: var(--accent-dark); }
   .demo-box[open] .demo-open { display: none; }
   .demo-box > .sheepdog { margin: 0; padding: 0 1.1rem 1.1rem; }
+  .demo-box > .demo-box-body { padding: 0 1.1rem 0.6rem; }
+  .demo-box > .demo-box-body .robot-table { margin: 0.25rem 0 0.5rem; }
   .sheepdog canvas {
     display: block; width: 100%; touch-action: none; cursor: crosshair;
     border-radius: 1rem; border: 1px solid var(--gray-800); background: #0e1711;
