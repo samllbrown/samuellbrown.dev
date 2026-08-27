@@ -538,39 +538,77 @@
 	}
 
 	// ---- Page: what it's thinking ------------------------------------------------------------
+
+	function bars(el, values, names, signed) {
+		if (!el) return;
+		if (el.childNodes.length !== values.length) {
+			el.innerHTML = '';
+			for (var i = 0; i < values.length; i++) {
+				var row = document.createElement('div'); row.className = 'robot-bar';
+				var nm = document.createElement('span'); nm.textContent = names[i]; row.appendChild(nm);
+				var track = document.createElement('i'); var fill = document.createElement('b'); track.appendChild(fill); row.appendChild(track);
+				var v = document.createElement('em'); row.appendChild(v);
+				el.appendChild(row);
+			}
+		}
+		for (var j = 0; j < values.length; j++) {
+			var r = el.childNodes[j], fill2 = r.childNodes[1].firstChild, val = values[j];
+			var mag = Math.min(1, Math.abs(val) / (signed ? 1 : 2));
+			if (signed) {
+				fill2.style.left = val >= 0 ? '50%' : (50 - mag * 50) + '%';
+				fill2.style.width = (mag * 50) + '%';
+				fill2.style.background = val >= 0 ? COL.pos : COL.neg;
+			} else { fill2.style.left = '0'; fill2.style.width = (mag * 100) + '%'; fill2.style.background = COL.bar; }
+			r.childNodes[2].textContent = val.toFixed(2);
+		}
+	}
+
+	// A panel of bars (inputs, hidden units, decision) plus the reading in the paper's words.
+	function makePanel(root) {
+		var q = function (sel) { return root.querySelector(sel); };
+		var inputsEl = q('[data-role="inputs"]'), hiddenEl = q('[data-role="hidden"]'), outEl = q('[data-role="outputs"]');
+		var statusEl = q('[data-role="status"]'), tallyEl = q('[data-role="tally"]');
+		var tally = { DRIVE: 0, COLLECT: 0, neither: 0 }, lastLabel = '';
+		function reset() { tally = { DRIVE: 0, COLLECT: 0, neither: 0 }; lastLabel = ''; }
+		function update(sim) {
+			var t = sim.lastThought;
+			if (t && sim.state === 'running') {
+				var th = readThought(sim, t.act.hx, t.act.hy);
+				tally[th.label] = (tally[th.label] || 0) + 1;
+				var own = featuresFor(t.nIn), vals = Array.from(t.inputs).slice(0, t.nIn - 1); vals.push(1);
+				bars(inputsEl, vals, own.map(function (f) { return f.short; }), true);
+				bars(hiddenEl, Array.from(t.act.hidden).slice(0, N_HID), ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8', 'h9', 'h10'], true);
+				if (outEl) {
+					var ang = Math.round(Math.atan2(t.act.hy, t.act.hx) * 180 / Math.PI);
+					outEl.innerHTML = '<span class="robot-arrow" style="transform: rotate(' + ang + 'deg)">➜</span> heading ' + ang + '° · speed ' + Math.round(t.act.speed * 100) + '%' + (sim.creeping ? ' (held off a sheep)' : '');
+				}
+				if (statusEl) {
+					var text = th.label === 'DRIVE' ? 'looks like DRIVE: heading for the spot behind the flock, away from the pen'
+						: th.label === 'COLLECT' ? 'looks like COLLECT: heading for the far side of the furthest sheep'
+						: 'neither: going somewhere the paper\'s dog wouldn\'t (' + (th.spread ? 'flock is spread out' : 'flock is tight') + ')';
+					if (text !== lastLabel) { statusEl.textContent = text; lastLabel = text; }
+				}
+				if (tallyEl) {
+					var tot = tally.DRIVE + tally.COLLECT + tally.neither || 1;
+					tallyEl.textContent = 'this run: DRIVE ' + Math.round(tally.DRIVE / tot * 100) + '% · COLLECT ' + Math.round(tally.COLLECT / tot * 100) + '% · neither ' + Math.round(tally.neither / tot * 100) + '% · ' + sim.pennedCount + '/' + sim.sheep.length + ' penned · ' + (sim.ticks / SD.TICKS_PER_SEC).toFixed(1) + 's';
+				}
+			} else if (sim.state === 'done' && statusEl && lastLabel !== 'done') {
+				statusEl.textContent = 'DONE: every sheep is in the pen in ' + (sim.ticks / SD.TICKS_PER_SEC).toFixed(1) + 's'; lastLabel = 'done';
+			}
+		}
+		return { update: update, reset: reset, setStatus: function (t) { if (statusEl) statusEl.textContent = t; } };
+	}
+
 	function mountThoughts(root) {
 		var level = root.dataset.robotThoughts || 'paper', brainName = root.dataset.brain || 'open';
 		var canvas = root.querySelector('canvas.robot-field'), ctx = canvas.getContext('2d');
 		var q = function (sel) { return root.querySelector(sel); };
-		var inputsEl = q('[data-role="inputs"]'), hiddenEl = q('[data-role="hidden"]'), outEl = q('[data-role="outputs"]');
-		var statusEl = q('[data-role="status"]'), tallyEl = q('[data-role="tally"]'), workEl = q('[data-role="work"]');
-		var sim = new SD.Sim(level), px = 1, tally = { DRIVE: 0, COLLECT: 0, neither: 0 }, started = false;
+		var workEl = q('[data-role="work"]');
+		var panel = makePanel(root);
+		var sim = new SD.Sim(level), px = 1, started = false;
 		var genome = validGenome(EVOLVED[brainName]) ? Float64Array.from(EVOLVED[brainName]) : null;
 		sim.reset(11);
 
-		function bars(el, values, names, signed) {
-			if (!el) return;
-			if (el.childNodes.length !== values.length) {
-				el.innerHTML = '';
-				for (var i = 0; i < values.length; i++) {
-					var row = document.createElement('div'); row.className = 'robot-bar';
-					var nm = document.createElement('span'); nm.textContent = names[i]; row.appendChild(nm);
-					var track = document.createElement('i'); var fill = document.createElement('b'); track.appendChild(fill); row.appendChild(track);
-					var v = document.createElement('em'); row.appendChild(v);
-					el.appendChild(row);
-				}
-			}
-			for (var j = 0; j < values.length; j++) {
-				var r = el.childNodes[j], fill2 = r.childNodes[1].firstChild, val = values[j];
-				var mag = Math.min(1, Math.abs(val) / (signed ? 1 : 2));
-				if (signed) {
-					fill2.style.left = val >= 0 ? '50%' : (50 - mag * 50) + '%';
-					fill2.style.width = (mag * 50) + '%';
-					fill2.style.background = val >= 0 ? COL.pos : COL.neg;
-				} else { fill2.style.left = '0'; fill2.style.width = (mag * 100) + '%'; fill2.style.background = COL.bar; }
-				r.childNodes[2].textContent = val.toFixed(2);
-			}
-		}
 
 		function resize() {
 			var cssW = canvas.parentElement.clientWidth || 600, cssH = cssW * (SD.H / SD.W);
@@ -580,10 +618,10 @@
 			px = canvas.width / SD.W;
 		}
 		function start() {
-			if (!genome) { if (statusEl) statusEl.textContent = 'no evolved dog available'; return; }
+			if (!genome) { panel.setStatus('no evolved dog available'); return; }
 			sim = new SD.Sim(level); sim.reset((Math.random() * 1e9) >>> 0);
 			sim.brain = makeBrain(genome);
-			tally = { DRIVE: 0, COLLECT: 0, neither: 0 };
+			panel.reset();
 			sim.start('brain', 'The robot collie');
 			started = true;
 		}
@@ -596,34 +634,69 @@
 			if (visible && !started) start();
 		}, { threshold: 0.3 }).observe(root);
 
-		var lastLabel = '';
 		function frame() {
 			if (!document.body.contains(root)) return;
 			if (visible) {
 				if (sim.state === 'running') sim.step();
 				SD.draw(ctx, sim, px, !workEl || workEl.checked);
-				var t = sim.lastThought;
-				if (t && sim.state === 'running') {
-					var th = readThought(sim, t.act.hx, t.act.hy);
-					tally[th.label] = (tally[th.label] || 0) + 1;
-					var own = featuresFor(t.nIn), vals = Array.from(t.inputs).slice(0, t.nIn - 1); vals.push(1);
-					bars(inputsEl, vals, own.map(function (f) { return f.short; }), true);
-					bars(hiddenEl, Array.from(t.act.hidden).slice(0, N_HID), ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8', 'h9', 'h10'], true);
-					if (outEl) {
-						var ang = Math.round(Math.atan2(t.act.hy, t.act.hx) * 180 / Math.PI);
-						outEl.innerHTML = '<span class="robot-arrow" style="transform: rotate(' + ang + 'deg)">➜</span> heading ' + ang + '° · speed ' + Math.round(t.act.speed * 100) + '%' + (sim.creeping ? ' (held off a sheep)' : '');
-					}
-					if (statusEl) {
-						var text = th.label === 'DRIVE' ? 'looks like DRIVE: heading for the spot behind the flock, away from the pen'
-							: th.label === 'COLLECT' ? 'looks like COLLECT: heading for the far side of the furthest sheep'
-							: 'neither: going somewhere the paper\'s dog wouldn\'t (' + (th.spread ? 'flock is spread out' : 'flock is tight') + ')';
-						if (text !== lastLabel) { statusEl.textContent = text; lastLabel = text; }
-					}
-					if (tallyEl) {
-						var tot = tally.DRIVE + tally.COLLECT + tally.neither || 1;
-						tallyEl.textContent = 'this run: DRIVE ' + Math.round(tally.DRIVE / tot * 100) + '% · COLLECT ' + Math.round(tally.COLLECT / tot * 100) + '% · neither ' + Math.round(tally.neither / tot * 100) + '% · ' + sim.pennedCount + '/' + sim.sheep.length + ' penned · ' + (sim.ticks / SD.TICKS_PER_SEC).toFixed(1) + 's';
-					}
-				} else if (sim.state === 'done' && statusEl && lastLabel !== 'done') { statusEl.textContent = 'DONE: every sheep is in the pen'; lastLabel = 'done'; }
+				panel.update(sim);
+			}
+			requestAnimationFrame(frame);
+		}
+		resize();
+		if ('ResizeObserver' in window) new ResizeObserver(resize).observe(root); else window.addEventListener('resize', resize);
+		requestAnimationFrame(frame);
+	}
+
+	// ---- Page: two dogs thinking, same flock ------------------------------------------------
+	function mountCompare(root) {
+		var q = function (sel) { return root.querySelector(sel); };
+		var levelEl = q('[data-role="level"]'), rivalEl = q('[data-role="rival"]'), workEl = q('[data-role="work"]');
+		var cols = root.querySelectorAll('.robot-compare-col');
+		var sides = [];
+		for (var i = 0; i < cols.length; i++) {
+			var c = cols[i];
+			sides.push({ root: c, name: c.dataset.dog, canvas: c.querySelector('canvas.robot-field'), ctx: c.querySelector('canvas.robot-field').getContext('2d'), panel: makePanel(c), titleEl: c.querySelector('[data-role="dog-name"]'), sim: null, px: 1 });
+		}
+		var started = false;
+		function dogOf(side) { return side.name === 'rival' ? (rivalEl ? rivalEl.value : 'open') : (side.name || 'best'); }
+		function nameOf(key) { return key === 'best' ? 'the best dog' : key === 'farm' ? 'the retrained dog' : 'the open-field dog'; }
+		function level() { return levelEl ? levelEl.value : (root.dataset.robotCompare || 'awkward'); }
+		function resize() {
+			sides.forEach(function (sd) {
+				var cssW = sd.root.clientWidth || 300, cssH = cssW * (SD.H / SD.W), dpr = Math.min(2, window.devicePixelRatio || 1);
+				sd.canvas.style.height = cssH + 'px';
+				sd.canvas.width = Math.round(cssW * dpr); sd.canvas.height = Math.round(cssH * dpr);
+				sd.px = sd.canvas.width / SD.W;
+			});
+		}
+		function start() {
+			var seed = (Math.random() * 1e9) >>> 0, lvl = level();
+			sides.forEach(function (sd) {
+				var key = dogOf(sd), g = validGenome(EVOLVED[key]) ? Float64Array.from(EVOLVED[key]) : null;
+				sd.sim = new SD.Sim(lvl); sd.sim.rand = SD.mulberry32(seed + 1); sd.sim.reset(seed);
+				if (sd.titleEl) sd.titleEl.textContent = nameOf(key);
+				sd.panel.reset();
+				if (!g) { sd.panel.setStatus('no evolved dog available'); return; }
+				sd.sim.brain = makeBrain(g);
+				sd.sim.start('brain', nameOf(key).charAt(0).toUpperCase() + nameOf(key).slice(1));
+			});
+			started = true;
+		}
+		root.querySelectorAll('[data-action]').forEach(function (b) { b.addEventListener('click', function () { if (b.dataset.action === 'new') start(); }); });
+		if (levelEl) levelEl.addEventListener('change', start);
+		if (rivalEl) rivalEl.addEventListener('change', start);
+		var visible = true;
+		if ('IntersectionObserver' in window) new IntersectionObserver(function (en) { visible = en[0].isIntersecting; if (visible && !started) start(); }, { threshold: 0.2 }).observe(root);
+		function frame() {
+			if (!document.body.contains(root)) return;
+			if (visible && started) {
+				sides.forEach(function (sd) {
+					if (!sd.sim) return;
+					if (sd.sim.state === 'running') sd.sim.step();
+					SD.draw(sd.ctx, sd.sim, sd.px, !workEl || workEl.checked);
+					sd.panel.update(sd.sim);
+				});
 			}
 			requestAnimationFrame(frame);
 		}
@@ -635,6 +708,7 @@
 	function mountAll() {
 		document.querySelectorAll('[data-robot-collie]').forEach(function (r) { if (!r.dataset.ready) { r.dataset.ready = '1'; mountEvolve(r); } });
 		document.querySelectorAll('[data-robot-thoughts]').forEach(function (r) { if (!r.dataset.ready) { r.dataset.ready = '1'; mountThoughts(r); } });
+		document.querySelectorAll('[data-robot-compare]').forEach(function (r) { if (!r.dataset.ready) { r.dataset.ready = '1'; mountCompare(r); } });
 	}
 	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountAll); else mountAll();
 	document.addEventListener('astro:page-load', mountAll);
