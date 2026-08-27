@@ -2,7 +2,7 @@
 title: Making a robot collie
 publishDate: 2026-08-27 00:00:00
 description: |
-  Last time I wrote the sheepdog's rules by hand. This time I gave the dog a small neural network and let it work the rules out for itself, one generation at a time. You can evolve one in your browser, race the fastest one I found, watch it struggle on a harder field, train it for that field, look at what it's thinking while it runs, and then watch it think side by side with the best dog an hour of evolution could make.
+  Last time I wrote the sheepdog's rules by hand. This time the dog had to work them out for itself, one generation at a time. You can evolve one in your browser, race it, and watch what it's thinking while it runs.
 tags:
   - Farming
   - Simulation
@@ -11,14 +11,14 @@ tags:
 
 In [the last post](/blog/the-collie-is-the-algorithm/) I built a sheepdog out of two rules from a paper. This time I wanted to see if a dog could work the rules out for itself. Not the usual way, with a pile of data and gradient descent: there's no data (nobody has recorded what a perfect sheepdog does), and you can't take a gradient through a flock of sheep. Real collies got good at it by the ones that could do the job having puppies. So I did that, in a simulation.
 
-The dog is a small neural network. It gets told where things are and it says which way to run and how fast. It doesn't know the two rules, it doesn't know what a pen is, and nobody tells it when it's done well. Every generation I run a batch of them, keep the ones that got the most sheep in, mix their brains with a few random changes, and go again.
+The dog is a small neural network. It gets told where things are and it says which way to run and how fast. It doesn't know the two rules or what a pen is, and nobody tells it when it's done well. Every generation I run a batch of them, keep the ones that got the most sheep in, mix their brains with a few random changes, and go again.
 
 ## What the dog gets
 
-The same body as the hand-written collie: it can't run faster, it can't turn faster (about a third of a turn a second), and it can't get closer than two sheep-widths to a sheep. Those are done by the world. Everything else it has to learn. It can see seventeen numbers, all measured from where it's standing.
+The same body as the hand-written collie: it can't run faster, it can't turn faster (about a third of a turn a second), and it can't get closer than two sheep-widths to a sheep. Those are done by the world. Everything else it has to learn from what it can see, which is seventeen numbers, all measured from where it's standing.
 
 <details class="demo-box">
-<summary><span class="demo-title">What the dog can see</span><span class="demo-desc">The seventeen numbers it gets, and why I gave it each one.</span><span class="demo-open">open</span></summary>
+<summary><span class="demo-title">What the dog can see</span><span class="demo-desc">The full list.</span><span class="demo-open">open</span></summary>
 <div class="demo-box-body">
 <div class="robot-table-wrap"><table class="robot-table">
 <thead><tr><th>what it sees</th><th>why I gave it that</th></tr></thead>
@@ -103,7 +103,7 @@ The best one I got, evolved properly on a machine: three batches of forty-eight,
 
 </details>
 
-Over sixty fresh flocks it penned the lot every time, median 10.5 seconds and worst 14.5, against 16.1 and 32.3 for the paper's dog and 12.5 and 17.6 for the collie I wrote by hand last time. (Sixty flocks flatters it a little: on four hundred more it lost one and took over twenty seconds on three, so call it one in a hundred that goes wrong.) It stays behind the flock the whole time, runs flat out, and never fetches a straggler. It gets behind the flock in line with the pen and pushes, and on this field that's enough.
+Over sixty fresh flocks it penned the lot every time, median 10.5 seconds and worst 14.5, against 16.1 and 32.3 for the paper's dog and 12.5 and 17.6 for the collie I wrote by hand last time. (Sixty flocks flatters it a little: on four hundred more it lost one and took over twenty seconds on three, so call it one in a hundred that goes wrong.) It stays behind the flock, runs flat out and never fetches a straggler. On this field, pushing from behind in line with the pen is enough.
 
 ## Away from home
 
@@ -281,7 +281,9 @@ The paper's dog tells you what it's doing: the status line says COLLECT or DRIVE
   </div>
 </div>
 
-Two things stand out. First, a third of the time it isn't doing either of the paper's rules: it reads as DRIVE and COLLECT about a third of the time each, and the rest it's going wide round the side of the flock, which is how it gets behind them without cutting across the front. Tick "workings" and you can see it: C and D are the two spots the paper's dog would be running to, the white line is where this dog is going. Second, which neurons do the work. Three of the ten sit pinned at 1 or −1 the whole run. The heading mostly comes from h7, which has the biggest weights on the output, and if you watch it against "nearest d" you can more or less see the rule: keep the nearest sheep at the distance it likes, and go.
+A third of the time it isn't doing either of the paper's rules. It reads as DRIVE and COLLECT about a third of the time each, and the rest it's going wide round the side of the flock, which is how it gets behind them without cutting across the front. Tick "workings" and you can see it: C and D are the two spots the paper's dog would be running to, and the white line is where this dog is going.
+
+The neurons are worth watching too. Three of the ten sit pinned at 1 or −1 the whole run. The heading mostly comes from h7, which has the biggest weights on the output, and if you watch it against "nearest d" you can more or less see the rule: keep the nearest sheep at the distance it likes, and go.
 
 ## The numbers
 
@@ -325,7 +327,7 @@ Three batches of forty-eight on the open field. One had a dog that penned a whol
 </tbody></table></div>
 <!-- /TABLE -->
 
-"Behind the flock" is the share of the run spent on the far side of the flock from the pen; "near a sheep" is the share within three sheep-widths of one. The robot collie is fastest on the median and, which surprised me, on the worst case.
+"Behind the flock" is the share of the run spent on the far side of the flock from the pen; "near a sheep" is the share within three sheep-widths of one. The robot collie is fastest on the median and on the worst case.
 
 <figure class="robot-figure" data-chart="race">
 <svg class="robot-svg" viewBox="0 0 640 280" role="img" aria-label="Time to pen all thirty sheep on sixty flocks, each dog's runs sorted fastest to slowest" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="12">
@@ -354,7 +356,7 @@ Three batches of forty-eight on the open field. One had a dog that penned a whol
 Switching off one thing it can see at a time, and re-running it on thirty flocks, says the same thing:
 
 <details class="demo-box">
-<summary><span class="demo-title">Switching the open-field dog's inputs off one at a time</span><span class="demo-desc">Thirty flocks on the open field, one input zeroed per row.</span><span class="demo-open">open</span></summary>
+<summary><span class="demo-title">Switching the open-field dog's inputs off one at a time</span><span class="demo-desc">One input turned off per row, thirty flocks each.</span><span class="demo-open">open</span></summary>
 <div class="demo-box-body">
 <!-- TABLE:ablation-open -->
 <div class="robot-table-wrap"><table class="robot-table">
@@ -428,9 +430,9 @@ The paper's dog reads as one of its own two rules 99% of the time, which is the 
 
 ## How to make it the best dog
 
-That was the honest first attempt. Then I gave myself an hour of compute to make the best dog I could without changing what a dog is. Three changes: two more things to see (the sheep left furthest behind, and which way the flock is drifting), all four fields in the training at once, and a start from the retrained dog rather than from scratch, with the new inputs wired to zero so it begins exactly as good as it was.
+Everything up to here was the first go. Then I gave myself an hour of compute to make the best dog I could without changing what a dog is. It got two more things to see (the sheep left furthest behind, and which way the flock is drifting), it was trained on all four fields at once, and it started from the retrained dog rather than from scratch, with the new inputs wired to zero so it began exactly as good as it was.
 
-Here it is thinking next to one of the earlier dogs, on the same flock, same sheep, same field. Change the field and the other dog with the menus.
+Here it is thinking next to one of the earlier dogs, on the same flock. The menus change the field and the other dog.
 
 <div class="sheepdog robot-compare" data-robot-compare="paper">
   <div class="sheepdog-controls robot-compare-controls">
@@ -478,7 +480,7 @@ Here it is thinking next to one of the earlier dogs, on the same flock, same she
 </tbody></table></div>
 <!-- /TABLE -->
 
-The fastest dog on the open field and the obstacle field, level with my collie on the awkward flock, and on the farm it pens fifty out of sixty to the collie's sixty, at about the same speed. And the thing I didn't expect: it ignores both of the new inputs. Switch off the sheep-left-behind and it does fractionally *better*. Everything it gained came from training on all four fields and starting from a dog that worked. It's also the first dog with no single point of failure: every earlier dog collapsed if you took away the nearest sheep's distance, and this one only dips whatever you take away.
+The fastest dog on the open field and the obstacle field, level with my collie on the awkward flock, and on the farm it pens fifty out of sixty to the collie's sixty, at about the same speed. It ignores both of the new inputs. Switch off the sheep-left-behind and it does fractionally *better*. Everything it gained came from training on all four fields and starting from a dog that worked. It's also the first dog you can't break by taking one input away: every earlier dog collapsed without the nearest sheep's distance, and this one only dips, whichever one you remove.
 
 ## What I took from it
 
@@ -488,7 +490,7 @@ Five dogs, in the order they turned up:
 - **My collie.** The paper's dog plus flanking, manners and a rule for obstacles, written by hand last time. Still the only dog that pens everything, everywhere.
 - **The open-field dog.** Evolved on one field. Faster than either hand-written dog there, uses one input, and falls apart anywhere else.
 - **The retrained dog.** Evolved on the awkward flock and the obstacle field. A working dog on both, and a long way off on the farm.
-- **The best dog.** The retrained dog carried on across all four fields at once. As good as my collie or better on three of them, and it ignored the extra eyes I gave it.
+- **The best dog.** The retrained dog carried on across all four fields at once. As good as my collie or better on three of them, and it ignored the two extra inputs I gave it.
 
 The lesson is the same one three times: it learns the fields it's given, and the way to get a general dog is to give it general fields, not cleverer eyes.
 
