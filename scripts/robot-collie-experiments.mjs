@@ -119,13 +119,13 @@ const pct = (x) => (x * 100).toFixed(0) + '%';
 // ---- evolve ------------------------------------------------------------------------------------
 if (cmd === 'evolve') {
 	const NAME = opt('name', 'open'), LEVELS = opt('levels', 'paper').split(',');
-	const GENS = +opt('gens', 150), RUNS = +opt('runs', 3), POP = +opt('pop', 48), FLOCKS = +opt('flocks', 3), MAXT = +opt('maxticks', 2400);
+	const GENS = +opt('gens', 150), RUNS = +opt('runs', 3), POP = +opt('pop', 48), FLOCKS = +opt('flocks', 3), MAXT = +opt('maxticks', 2400), NIN = +opt('nin', B.N_IN);
 	log(`Evolving "${NAME}" on ${LEVELS.join('+')}: ${RUNS} runs × ${GENS} generations, batch of ${POP}, ${FLOCKS} flocks per generation, ${MAXT / 60}s limit, ${NW} workers`);
 	const runs = [];
 	for (let run = 1; run <= RUNS; run++) {
 		const FROM = opt('from', null);
 		const seedGenomes = FROM ? [JSON.parse(readFileSync(FROM, 'utf8')).genome] : [];
-		const ev = new B.Evolver({ levels: LEVELS, popSize: POP, flocksPerGen: FLOCKS, maxTicks: MAXT, seed: run * 101 + LEVELS.length + (FROM ? 7 : 0), seedGenomes });
+		const ev = new B.Evolver({ levels: LEVELS, popSize: POP, flocksPerGen: FLOCKS, maxTicks: MAXT, seed: run * 101 + LEVELS.length + (FROM ? 7 : 0), seedGenomes, nIn: NIN });
 		const tr = performance.now();
 		let firstFull = null;
 		for (let g = 0; g < GENS; g++) {
@@ -160,7 +160,7 @@ if (cmd === 'evolve') {
 // ---- bench ---------------------------------------------------------------------------------------
 if (cmd === 'bench') {
 	const champs = {};
-	for (const nm of ['open', 'farm']) if (existsSync(`${OUT}/champion-${nm}.json`)) champs[nm] = JSON.parse(readFileSync(`${OUT}/champion-${nm}.json`, 'utf8'));
+	for (const nm of ['open', 'farm', 'best']) if (existsSync(`${OUT}/champion-${nm}.json`)) champs[nm] = JSON.parse(readFileSync(`${OUT}/champion-${nm}.json`, 'utf8'));
 	const R = { champions: Object.fromEntries(Object.entries(champs).map(([k, v]) => [k, { run: v.run, fitness: v.fitness, done: v.done, medianTicks: v.medianTicks }])) };
 	const SEEDS = Array.from({ length: 60 }, (_, i) => 90000 + i);
 	const summarise = (res) => {
@@ -172,7 +172,7 @@ if (cmd === 'bench') {
 	const line = (k, p) => `${k.padEnd(10)} penned all ${p.done}/60 (mean ${p.pennedMean.toFixed(1)}/${p.n}), median ${fmtT(p.median)}, worst ${fmtT(p.worst)}` + (p.behind != null ? `, behind ${pct(p.behind)}, close ${pct(p.nearSheep)}, held off ${pct(p.held)}, DRIVE ${pct(p.drive)} COLLECT ${pct(p.collect)} neither ${pct(p.neither)}` + (p.speed != null ? `, speed ${pct(p.speed)}` : '') : '');
 
 	// The dogs. 'paper' level's collie is the paper's dog as published; 'open' is the same field with my collie.
-	const DOGS = [['open', 'brain', champs.open], ['farm', 'brain', champs.farm], ['collie', 'collie', null], ['paperDog', 'collie', null]].filter((d) => d[1] !== 'brain' || d[2]);
+	const DOGS = [['open', 'brain', champs.open], ['farm', 'brain', champs.farm], ['best', 'brain', champs.best], ['collie', 'collie', null], ['paperDog', 'collie', null]].filter((d) => d[1] !== 'brain' || d[2]);
 	const levelFor = (dogKey, lvl) => (dogKey === 'paperDog' ? (lvl === 'open' ? 'paper' : lvl + 'naive') : dogKey === 'collie' && lvl === 'paper' ? 'open' : lvl);
 
 	log('\nA. Sixty fresh flocks on the open field: every dog, 90s limit.');
@@ -242,12 +242,30 @@ if (cmd === 'bench') {
 		}
 	}
 
-	for (const nm of ['open', 'farm']) {
+	for (const nm of ['open', 'farm', 'best']) {
 		if (!existsSync(`${OUT}/runs-${nm}.json`)) continue;
 		const runs = JSON.parse(readFileSync(`${OUT}/runs-${nm}.json`, 'utf8'));
 		R['runs_' + nm] = runs.map((r) => ({ run: r.run, firstFull: r.firstFull, seconds: r.seconds, history: r.history }));
 		log(`\nE. Evolution runs for "${nm}": first full pen, best score at the end`);
 		for (const r of runs) log(`run ${r.run}: first full pen at generation ${r.firstFull}, best at the end ${r.history[r.history.length - 1].best.toFixed(2)}, ${(r.seconds / 60).toFixed(1)} min`);
+	}
+
+	log('\nD2. The same for the best dog, on all four fields (32 flocks, 8 each).');
+	R.ablationBest = [];
+	if (champs.best) {
+		const G = Float64Array.from(champs.best.genome), nIn = B.inputsOf(G);
+		const TEST3 = Array.from({ length: 32 }, (_, i) => ({ level: ['paper', 'awkward', 'field', 'farm2'][i % 4], seed: 72000 + i }));
+		const base = await fitnessOn(G, TEST3, 5400);
+		R.ablationBest.push({ input: 'nothing (the dog as evolved)', ...base });
+		log(`${'nothing'.padEnd(30)} fitness ${base.fitness.toFixed(2)}, ${base.done}/32`);
+		const groups = [['flock centre', [0, 1]], ['furthest sheep', [2, 3]], ['flock to pen', [4, 5]], ['how spread out', [6]], ['share still loose', [7]], ['nearest sheep, where', [8, 9]], ['nearest sheep, how far', [10]], ['nearest obstacle', [11, 12, 13]], ['nearest sheep speed', [14]], ['flock speed', [15]], ['sheep left behind', [16, 17]], ['flock drift', [18, 19]]].filter(([, idx]) => idx.every((i) => i < nIn - 1));
+		for (const [name, idx] of groups) {
+			const g = Float64Array.from(G);
+			for (const i of idx) for (let h = 0; h < B.N_HID; h++) g[h * nIn + i] = 0;
+			const t = await fitnessOn(g, TEST3, 5400);
+			R.ablationBest.push({ input: name, ...t });
+			log(`${name.padEnd(30)} fitness ${t.fitness.toFixed(2)}, ${t.done}/32`);
+		}
 	}
 
 	R.elapsedSec = (performance.now() - t0) / 1000;
@@ -280,7 +298,7 @@ function writeCharts(R, OUT) {
 		return s + '</svg>\n';
 	}
 	const legend = (items) => `<div class="robot-legend">${items.map((i) => `<span><i style="background:${i.color}"></i>${i.name}</span>`).join('')}</div>\n`;
-	for (const nm of ['open', 'farm']) {
+	for (const nm of ['open', 'farm', 'best']) {
 		const runs = R['runs_' + nm];
 		if (!runs) continue;
 		const series = [];
@@ -289,7 +307,7 @@ function writeCharts(R, OUT) {
 			series.push({ name: `run ${r.run}, batch average`, color: C.b, opacity: 0.6, points: r.history.map((h) => [h.gen + 1, h.mean]) });
 		});
 		const G = Math.max(...runs.map((r) => r.history[r.history.length - 1].gen + 1));
-		const svg = chart({ title: `Score of the best dog and of the batch average, by generation, for each run (${nm === 'open' ? 'open field' : 'awkward flock and obstacle field'})`, series, xmin: 0, xmax: G, ymin: 0, ymax: 2.3, xticks: [0, 50, 100, 150, 200, 250, 300].filter((t) => t <= G), yticks: [0, 1, 2], xlabel: 'generation', ylabel: 'score (1 = every sheep in)', hlines: [{ y: 1 }] });
+		const svg = chart({ title: `Score of the best dog and of the batch average, by generation, for each run (${nm === 'open' ? 'open field' : nm === 'farm' ? 'awkward flock and obstacle field' : 'all four fields'})`, series, xmin: 0, xmax: G, ymin: 0, ymax: 2.3, xticks: [0, 50, 100, 150, 200, 250, 300].filter((t) => t <= G), yticks: [0, 1, 2], xlabel: 'generation', ylabel: 'score (1 = every sheep in)', hlines: [{ y: 1 }] });
 		writeFileSync(`${OUT}/chart-learning-${nm}.html`, svg + legend([{ name: 'best dog (one line per run)', color: C.a }, { name: 'batch average', color: C.b }]));
 	}
 	if (R.paper && R.paper.open) {

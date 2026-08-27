@@ -2,7 +2,7 @@
 title: Making a robot collie
 publishDate: 2026-08-27 00:00:00
 description: |
-  Last time I wrote the sheepdog's rules by hand. This time I gave the dog a small neural network and let it work the rules out for itself, one generation at a time. You can evolve one in your browser, race the fastest one I found, watch it struggle on a harder field, train it for that field, and then look at what it's thinking while it runs.
+  Last time I wrote the sheepdog's rules by hand. This time I gave the dog a small neural network and let it work the rules out for itself, one generation at a time. You can evolve one in your browser, race the fastest one I found, watch it struggle on a harder field, train it for that field, look at what it's thinking while it runs, and then see how good a dog an hour of evolution can make.
 tags:
   - Farming
   - Simulation
@@ -326,6 +326,7 @@ The champion is chosen honestly: the best dog from each of the last twenty gener
 <thead><tr><th>dog</th><th class="num">penned all</th><th class="num">median</th><th class="num">worst</th><th class="num">behind the flock</th><th class="num">near a sheep</th></tr></thead>
 <tbody>
 <tr><td>robot collie, open field</td><td class="num">60 / 60</td><td class="num">11.1s</td><td class="num">14.9s</td><td class="num">99%</td><td class="num">2%</td></tr>
+<tr><td>robot collie, best</td><td class="num">60 / 60</td><td class="num">10.7s</td><td class="num">16.7s</td><td class="num">100%</td><td class="num">2%</td></tr>
 <tr><td>my collie</td><td class="num">60 / 60</td><td class="num">12.5s</td><td class="num">17.6s</td><td class="num">87%</td><td class="num">4%</td></tr>
 <tr><td>the paper's dog</td><td class="num">59 / 60</td><td class="num">16.1s</td><td class="num">32.3s</td><td class="num">71%</td><td class="num">14%</td></tr>
 </tbody></table></div>
@@ -389,12 +390,15 @@ That table is stranger than it looks. Switch off where the pen is, where the fur
 <tbody>
 <tr><td>awkward flock (36)</td><td class="num">robot collie, open field</td><td class="num">45 / 60</td><td class="num">28.1</td><td class="num">14.8s</td></tr>
 <tr><td></td><td class="num">robot collie, retrained</td><td class="num">57 / 60</td><td class="num">34.8</td><td class="num">19.1s</td></tr>
+<tr><td></td><td class="num">robot collie, best</td><td class="num">59 / 60</td><td class="num">35.5</td><td class="num">15.8s</td></tr>
 <tr><td></td><td class="num">my collie</td><td class="num">60 / 60</td><td class="num">36.0</td><td class="num">17.7s</td></tr>
 <tr><td>pond, wall and trees (30)</td><td class="num">robot collie, open field</td><td class="num">54 / 60</td><td class="num">27.0</td><td class="num">15.8s</td></tr>
 <tr><td></td><td class="num">robot collie, retrained</td><td class="num">60 / 60</td><td class="num">30.0</td><td class="num">14.9s</td></tr>
+<tr><td></td><td class="num">robot collie, best</td><td class="num">60 / 60</td><td class="num">30.0</td><td class="num">13.3s</td></tr>
 <tr><td></td><td class="num">my collie</td><td class="num">60 / 60</td><td class="num">30.0</td><td class="num">14.1s</td></tr>
 <tr><td>the farm (60, everything)</td><td class="num">robot collie, open field</td><td class="num">12 / 60</td><td class="num">20.6</td><td class="num">25.6s</td></tr>
 <tr><td></td><td class="num">robot collie, retrained</td><td class="num">39 / 60</td><td class="num">51.0</td><td class="num">30.4s</td></tr>
+<tr><td></td><td class="num">robot collie, best</td><td class="num">52 / 60</td><td class="num">55.5</td><td class="num">31.5s</td></tr>
 <tr><td></td><td class="num">my collie</td><td class="num">60 / 60</td><td class="num">60.0</td><td class="num">27.9s</td></tr>
 </tbody></table></div>
 <!-- /TABLE -->
@@ -463,6 +467,8 @@ For each dog, the share of the run its heading pointed at the paper's COLLECT sp
 <tr><td>robot collie (open field), awkward flock</td><td class="num">30%</td><td class="num">24%</td><td class="num">45%</td></tr>
 <tr><td>robot collie (retrained), obstacle field</td><td class="num">25%</td><td class="num">24%</td><td class="num">51%</td></tr>
 <tr><td>robot collie (retrained), awkward flock</td><td class="num">25%</td><td class="num">28%</td><td class="num">47%</td></tr>
+<tr><td>robot collie (best), awkward flock</td><td class="num">31%</td><td class="num">29%</td><td class="num">39%</td></tr>
+<tr><td>robot collie (best), the farm</td><td class="num">29%</td><td class="num">27%</td><td class="num">43%</td></tr>
 </tbody></table></div>
 <!-- /TABLE -->
 
@@ -476,12 +482,167 @@ The paper's dog reads as one of its own two rules 99% of the time, which is the 
 - The score rewards speed on a 40 second limit, and the worst-case times show what that buys.
 - The turning limit went in after the dogs were evolved, not before, because the spinning only showed up when I watched them on the harder fields. It made both dogs better as it happens. I did then evolve both dogs again with it in from the start, and got the same dogs back to within a flock or two, so it isn't hiding anything.
 - The old ewes came out after the dogs were evolved too. The retrained dog was trained with them in, and all the numbers above are without them. With them in, the retrained dog gets 37 of 60 awkward flocks instead of 57, because a ewe standing near the dog is the nearest sheep, and this dog's rule is about the nearest sheep.
-- More generations for the retrained dog might get it more of the awkward flock. I tried that on an earlier version of it and got almost nothing for half an hour of compute, so I stopped doing it. I doubt it gets the farm without the farm in the training, and the farm takes four times as long to run.
+- More generations on the same fields didn't help the retrained dog: I tried that on an earlier version of it and got almost nothing for half an hour of compute. What did help was more fields, which is the last section.
+- The best dog had the farm in its training and the other two didn't, so the farm column isn't a fair comparison between the dogs; it's a comparison between the best dog and my collie, which is the one I care about.
 - All timings are one machine, unoptimised JavaScript, and only matter as a rough idea of what an afternoon is.
+
+## How to make it the best dog
+
+Everything above was the honest first attempt. Then I gave myself an hour of compute and a free hand to make the best dog I could, without changing what a dog is. Three things:
+
+- **Two more things to see.** The sheep left furthest behind (measured against the direction to the pen, which is the leader problem seen from the dog's side), and which way the flock is drifting, not just how fast. That's twenty-one inputs.
+- **All four fields at once.** Every generation gets one flock on each of the open field, the awkward flock, the obstacle field and the farm, so one dog has to do everything instead of two dogs doing one thing each.
+- **Start from the retrained dog, not from scratch.** Its brain is copied in with the new inputs wired to zero, so it begins exactly as good as it was and can only build on it. That's what makes it fit in an hour: three batches of a hundred and fifty generations, and no time spent rediscovering how to get behind a flock.
+
+It worked, and it's the first robot dog in this post that I'd call better than mine. On the open field it's the fastest dog of the lot, my collie included, with a median of 10.7 seconds. On the awkward flock it pens 59 out of 60 and is quicker than my collie on the median. On the obstacle field it's quicker than my collie and its worst case is seven seconds better. And on the farm it goes from 39 full pens in 60 to 52, with 55 of the 60 sheep in on average, where my collie gets all 60 but takes about the same time. So: one dog, four fields, better than the hand-written collie on three of them and behind it on the fourth.
+
+<details class="demo-box">
+<summary><span class="demo-title">The best dog on the awkward flock</span><span class="demo-desc">Against the retrained dog and my collie. Leaders, loners and flighty sheep.</span><span class="demo-open">open the demo</span></summary>
+<div class="sheepdog" data-sheepdog="awkward" data-brain="best">
+  <canvas aria-label="Sheepdog simulation: the best robot collie on a flock with personalities"></canvas>
+  <div class="sheepdog-hud">
+    <span data-role="status">lie down</span>
+    <span class="sheepdog-stats"><span data-role="count">0 / 36 penned</span> · <span data-role="time">0.0s</span></span>
+  </div>
+  <div class="sheepdog-controls">
+    <button type="button" data-mode="brain:best" data-name="the best dog">Watch the best dog</button>
+    <button type="button" data-mode="brain:farm" data-name="the retrained dog">Watch the retrained dog</button>
+    <button type="button" data-mode="collie" data-name="my collie">Watch my collie</button>
+    <button type="button" data-mode="manual">You drive</button>
+    <button type="button" data-action="new">New flock</button>
+    <label><input type="checkbox" data-role="work" checked /> workings</label>
+  </div>
+  <div class="sheepdog-board">
+    <span>Best dog <b data-time="brain:best">–</b></span>
+    <span>Retrained dog <b data-time="brain:farm">–</b></span>
+    <span>My collie <b data-time="collie">–</b></span>
+    <span>You <b data-time="manual">–</b></span>
+    <span class="sheepdog-verdict" data-role="verdict"></span>
+  </div>
+  <div class="sheepdog-traits" data-role="traits"></div>
+</div>
+</details>
+
+<details class="demo-box">
+<summary><span class="demo-title">The best dog on the farm</span><span class="demo-desc">Sixty awkward sheep and all the obstacles, which this dog has now trained on.</span><span class="demo-open">open the demo</span></summary>
+<div class="sheepdog" data-sheepdog="farm2" data-brain="best">
+  <canvas aria-label="Sheepdog simulation: the best robot collie on the full farm"></canvas>
+  <div class="sheepdog-hud">
+    <span data-role="status">lie down</span>
+    <span class="sheepdog-stats"><span data-role="count">0 / 60 penned</span> · <span data-role="time">0.0s</span></span>
+  </div>
+  <div class="sheepdog-controls">
+    <button type="button" data-mode="brain:best" data-name="the best dog">Watch the best dog</button>
+    <button type="button" data-mode="brain:farm" data-name="the retrained dog">Watch the retrained dog</button>
+    <button type="button" data-mode="collie" data-name="my collie">Watch my collie</button>
+    <button type="button" data-mode="manual">You drive</button>
+    <button type="button" data-action="new">New flock</button>
+    <label><input type="checkbox" data-role="work" checked /> workings</label>
+  </div>
+  <div class="sheepdog-board">
+    <span>Best dog <b data-time="brain:best">–</b></span>
+    <span>Retrained dog <b data-time="brain:farm">–</b></span>
+    <span>My collie <b data-time="collie">–</b></span>
+    <span>You <b data-time="manual">–</b></span>
+    <span class="sheepdog-verdict" data-role="verdict"></span>
+  </div>
+  <div class="sheepdog-traits" data-role="traits"></div>
+</div>
+</details>
+
+<details class="demo-box">
+<summary><span class="demo-title">The best dog on the open field</span><span class="demo-desc">Back where it started, against the open-field specialist and the paper's dog.</span><span class="demo-open">open the demo</span></summary>
+<div class="sheepdog" data-sheepdog="paper" data-brain="best" data-collie-name="the paper's dog">
+  <canvas aria-label="Sheepdog simulation: the best robot collie on the open field"></canvas>
+  <div class="sheepdog-hud">
+    <span data-role="status">lie down</span>
+    <span class="sheepdog-stats"><span data-role="count">0 / 30 penned</span> · <span data-role="time">0.0s</span></span>
+  </div>
+  <div class="sheepdog-controls">
+    <button type="button" data-mode="brain:best" data-name="the best dog">Watch the best dog</button>
+    <button type="button" data-mode="brain:open" data-name="the open-field dog">Watch the open-field dog</button>
+    <button type="button" data-mode="collie" data-name="the paper's dog">Watch the paper's dog</button>
+    <button type="button" data-mode="manual">You drive</button>
+    <button type="button" data-action="new">New flock</button>
+    <label><input type="checkbox" data-role="work" checked /> workings</label>
+  </div>
+  <div class="sheepdog-board">
+    <span>Best dog <b data-time="brain:best">–</b></span>
+    <span>Open-field dog <b data-time="brain:open">–</b></span>
+    <span>Paper's dog <b data-time="collie">–</b></span>
+    <span>You <b data-time="manual">–</b></span>
+    <span class="sheepdog-verdict" data-role="verdict"></span>
+  </div>
+</div>
+</details>
+
+### The best dog's numbers
+
+<!-- TABLE:best -->
+<div class="robot-table-wrap"><table class="robot-table">
+<thead><tr><th>field</th><th class="num">best dog penned all</th><th class="num">sheep in, average</th><th class="num">best dog median</th><th class="num">my collie penned all</th><th class="num">my collie median</th></tr></thead>
+<tbody>
+<tr><td>open field (30)</td><td class="num">60 / 60</td><td class="num">30.0</td><td class="num">10.7s</td><td class="num">60 / 60</td><td class="num">12.5s</td></tr>
+<tr><td>awkward flock (36)</td><td class="num">59 / 60</td><td class="num">35.5</td><td class="num">15.8s</td><td class="num">60 / 60</td><td class="num">17.7s</td></tr>
+<tr><td>pond, wall and trees (30)</td><td class="num">60 / 60</td><td class="num">30.0</td><td class="num">13.3s</td><td class="num">60 / 60</td><td class="num">14.1s</td></tr>
+<tr><td>the farm (60)</td><td class="num">52 / 60</td><td class="num">55.5</td><td class="num">31.5s</td><td class="num">60 / 60</td><td class="num">27.9s</td></tr>
+</tbody></table></div>
+<!-- /TABLE -->
+
+The champion was picked the same way as the others, on thirty flocks none of the finalists had seen, spread across the four fields: it penned all thirty. Head to head with the open-field specialist on the open field it's about level, 31 flocks to 29, which is the specialist's own ground; everywhere else it wins comfortably.
+
+The bit I didn't expect is in the next table. I gave it two new things to see, the sheep left furthest behind and which way the flock is drifting, because those looked like what it was missing at the mouth of the pen. It ignores both. Switch off the sheep-left-behind input and it does very slightly *better*. Switch off the drift and nothing happens. Everything it gained came from the other two changes: being trained on all four fields at once, and starting from a dog that already worked instead of from random weights. I'd have bet on the inputs.
+
+<figure class="robot-figure" data-chart="learning-best">
+<svg class="robot-svg" viewBox="0 0 640 280" role="img" aria-label="Score of the best dog and of the batch average, by generation, for each run (all four fields)" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="12">
+<title>Score of the best dog and of the batch average, by generation, for each run (all four fields)</title>
+<line x1="44" x2="624" y1="240.0" y2="240.0" stroke="rgba(255,255,255,0.14)"/><text x="36" y="240.0" fill="#8490b5" text-anchor="end" dominant-baseline="middle">0</text>
+<line x1="44" x2="624" y1="142.6" y2="142.6" stroke="rgba(255,255,255,0.14)"/><text x="36" y="142.6" fill="#8490b5" text-anchor="end" dominant-baseline="middle">1</text>
+<line x1="44" x2="624" y1="45.2" y2="45.2" stroke="rgba(255,255,255,0.14)"/><text x="36" y="45.2" fill="#8490b5" text-anchor="end" dominant-baseline="middle">2</text>
+<text x="44.0" y="258" fill="#8490b5" text-anchor="middle">0</text>
+<text x="237.3" y="258" fill="#8490b5" text-anchor="middle">50</text>
+<text x="430.7" y="258" fill="#8490b5" text-anchor="middle">100</text>
+<text x="624.0" y="258" fill="#8490b5" text-anchor="middle">150</text>
+<path d="M44 16 V240 H624" fill="none" stroke="rgba(255,255,255,0.14)"/>
+<line x1="44" x2="624" y1="142.6" y2="142.6" stroke="rgba(255,255,255,0.35)" stroke-dasharray="3 4"/>
+<text x="624" y="274" fill="#8490b5" text-anchor="end">generation</text>
+<text transform="translate(12 16) rotate(-90)" fill="#8490b5" text-anchor="end">score (1 = every sheep in)</text>
+<path d="M47.9 35.1 L51.7 34.3 L55.6 38.4 L59.5 30.6 L63.3 33.4 L67.2 34.9 L71.1 35.1 L74.9 36.5 L78.8 32.9 L82.7 33.3 L86.5 33.1 L90.4 35.0 L94.3 33.5 L98.1 34.4 L102.0 35.2 L105.9 32.2 L109.7 30.7 L113.6 34.0 L117.5 30.8 L121.3 32.2 L125.2 33.4 L129.1 33.8 L132.9 36.7 L136.8 36.6 L140.7 33.2 L144.5 30.2 L148.4 32.9 L152.3 37.5 L156.1 32.7 L160.0 38.0 L163.9 32.6 L167.7 32.7 L171.6 36.7 L175.5 31.1 L179.3 33.2 L183.2 32.6 L187.1 37.1 L190.9 33.9 L194.8 36.8 L198.7 35.1 L202.5 33.8 L206.4 33.0 L210.3 31.2 L214.1 35.8 L218.0 32.8 L221.9 32.2 L225.7 31.5 L229.6 33.7 L233.5 35.9 L237.3 30.9 L241.2 31.4 L245.1 31.1 L248.9 35.8 L252.8 35.5 L256.7 29.8 L260.5 31.4 L264.4 35.0 L268.3 31.2 L272.1 31.7 L276.0 34.1 L279.9 35.5 L283.7 36.6 L287.6 31.9 L291.5 33.3 L295.3 36.5 L299.2 35.2 L303.1 32.1 L306.9 35.0 L310.8 35.6 L314.7 33.4 L318.5 34.9 L322.4 29.8 L326.3 33.5 L330.1 33.7 L334.0 36.0 L337.9 32.2 L341.7 34.7 L345.6 32.2 L349.5 35.3 L353.3 32.5 L357.2 34.5 L361.1 31.9 L364.9 34.1 L368.8 36.5 L372.7 30.2 L376.5 29.7 L380.4 32.6 L384.3 35.2 L388.1 34.8 L392.0 30.6 L395.9 30.7 L399.7 31.9 L403.6 34.3 L407.5 36.4 L411.3 31.1 L415.2 34.5 L419.1 30.6 L422.9 33.1 L426.8 34.0 L430.7 36.0 L434.5 36.2 L438.4 32.7 L442.3 30.5 L446.1 32.6 L450.0 34.3 L453.9 32.2 L457.7 33.7 L461.6 33.9 L465.5 33.1 L469.3 34.4 L473.2 35.8 L477.1 35.4 L480.9 33.6 L484.8 32.9 L488.7 31.2 L492.5 33.4 L496.4 30.7 L500.3 33.0 L504.1 34.1 L508.0 31.6 L511.9 33.6 L515.7 32.1 L519.6 29.7 L523.5 32.3 L527.3 29.5 L531.2 32.8 L535.1 31.7 L538.9 35.6 L542.8 30.6 L546.7 31.5 L550.5 33.4 L554.4 35.9 L558.3 29.7 L562.1 33.0 L566.0 30.8 L569.9 34.2 L573.7 35.1 L577.6 31.2 L581.5 34.2 L585.3 31.8 L589.2 30.3 L593.1 39.0 L596.9 31.6 L600.8 32.8 L604.7 32.7 L608.5 34.8 L612.4 32.9 L616.3 30.1 L620.1 30.8 L624.0 33.4" fill="none" stroke="#a93fe0" stroke-width="2" stroke-opacity="0.85" stroke-linejoin="round"><title>run 1, best dog</title></path>
+<path d="M47.9 51.3 L51.7 69.1 L55.6 78.4 L59.5 48.9 L63.3 67.1 L67.2 69.6 L71.1 66.3 L74.9 80.6 L78.8 59.8 L82.7 78.8 L86.5 69.6 L90.4 74.0 L94.3 64.3 L98.1 60.3 L102.0 79.2 L105.9 57.7 L109.7 61.0 L113.6 58.4 L117.5 57.7 L121.3 65.7 L125.2 58.0 L129.1 59.9 L132.9 74.0 L136.8 69.0 L140.7 56.5 L144.5 42.4 L148.4 60.1 L152.3 70.4 L156.1 54.1 L160.0 74.0 L163.9 54.4 L167.7 47.8 L171.6 64.0 L175.5 52.7 L179.3 57.3 L183.2 56.5 L187.1 70.8 L190.9 63.6 L194.8 72.9 L198.7 59.4 L202.5 53.2 L206.4 56.4 L210.3 39.9 L214.1 72.7 L218.0 50.0 L221.9 55.6 L225.7 39.3 L229.6 45.0 L233.5 70.1 L237.3 41.2 L241.2 48.2 L245.1 47.9 L248.9 57.1 L252.8 81.4 L256.7 39.7 L260.5 38.2 L264.4 63.9 L268.3 46.1 L272.1 56.4 L276.0 53.4 L279.9 59.5 L283.7 60.0 L287.6 42.3 L291.5 46.7 L295.3 56.0 L299.2 50.3 L303.1 46.8 L306.9 49.0 L310.8 66.7 L314.7 46.6 L318.5 44.0 L322.4 38.6 L326.3 42.3 L330.1 47.6 L334.0 55.7 L337.9 43.8 L341.7 52.6 L345.6 42.5 L349.5 47.1 L353.3 51.8 L357.2 61.2 L361.1 42.4 L364.9 55.2 L368.8 57.6 L372.7 40.9 L376.5 39.0 L380.4 45.8 L384.3 49.2 L388.1 49.8 L392.0 42.4 L395.9 42.1 L399.7 48.2 L403.6 45.9 L407.5 54.2 L411.3 43.3 L415.2 57.4 L419.1 45.2 L422.9 49.3 L426.8 54.4 L430.7 47.1 L434.5 59.8 L438.4 54.6 L442.3 52.4 L446.1 59.4 L450.0 55.3 L453.9 42.2 L457.7 47.6 L461.6 48.2 L465.5 45.2 L469.3 57.0 L473.2 43.4 L477.1 47.7 L480.9 47.3 L484.8 43.4 L488.7 46.2 L492.5 39.5 L496.4 36.9 L500.3 40.8 L504.1 41.8 L508.0 37.0 L511.9 55.5 L515.7 43.5 L519.6 35.1 L523.5 53.6 L527.3 39.0 L531.2 44.6 L535.1 41.0 L538.9 53.0 L542.8 41.7 L546.7 44.7 L550.5 44.1 L554.4 56.4 L558.3 39.7 L562.1 46.4 L566.0 48.1 L569.9 56.7 L573.7 54.1 L577.6 38.8 L581.5 44.4 L585.3 50.1 L589.2 34.0 L593.1 60.6 L596.9 43.7 L600.8 44.1 L604.7 40.2 L608.5 50.8 L612.4 43.8 L616.3 38.4 L620.1 38.8 L624.0 47.2" fill="none" stroke="#c97c12" stroke-width="2" stroke-opacity="0.6" stroke-linejoin="round"><title>run 1, batch average</title></path>
+<path d="M47.9 36.5 L51.7 36.3 L55.6 37.0 L59.5 30.0 L63.3 34.3 L67.2 36.0 L71.1 33.1 L74.9 36.2 L78.8 36.2 L82.7 33.7 L86.5 32.5 L90.4 35.5 L94.3 34.2 L98.1 31.9 L102.0 37.1 L105.9 31.4 L109.7 31.7 L113.6 34.3 L117.5 30.4 L121.3 34.6 L125.2 33.6 L129.1 34.1 L132.9 34.6 L136.8 38.4 L140.7 35.5 L144.5 31.1 L148.4 35.0 L152.3 34.2 L156.1 33.9 L160.0 35.8 L163.9 33.0 L167.7 32.1 L171.6 38.1 L175.5 31.8 L179.3 32.2 L183.2 32.3 L187.1 39.0 L190.9 33.8 L194.8 37.3 L198.7 36.3 L202.5 32.9 L206.4 33.6 L210.3 31.2 L214.1 34.5 L218.0 33.5 L221.9 35.2 L225.7 33.3 L229.6 34.2 L233.5 35.9 L237.3 31.2 L241.2 32.4 L245.1 31.3 L248.9 33.5 L252.8 37.5 L256.7 30.6 L260.5 31.6 L264.4 34.4 L268.3 32.0 L272.1 34.6 L276.0 33.0 L279.9 37.3 L283.7 38.2 L287.6 33.1 L291.5 35.0 L295.3 36.0 L299.2 34.8 L303.1 33.7 L306.9 34.9 L310.8 41.6 L314.7 32.3 L318.5 36.2 L322.4 29.6 L326.3 34.3 L330.1 33.2 L334.0 35.5 L337.9 32.9 L341.7 32.9 L345.6 33.2 L349.5 34.2 L353.3 33.3 L357.2 36.2 L361.1 32.3 L364.9 33.5 L368.8 38.2 L372.7 31.6 L376.5 29.2 L380.4 31.7 L384.3 33.4 L388.1 34.5 L392.0 30.8 L395.9 30.4 L399.7 32.8 L403.6 34.6 L407.5 35.6 L411.3 33.8 L415.2 34.5 L419.1 31.8 L422.9 31.4 L426.8 33.8 L430.7 35.3 L434.5 33.2 L438.4 33.1 L442.3 32.1 L446.1 32.4 L450.0 34.4 L453.9 31.6 L457.7 33.7 L461.6 33.8 L465.5 33.2 L469.3 34.1 L473.2 34.2 L477.1 34.1 L480.9 32.8 L484.8 33.4 L488.7 31.3 L492.5 32.7 L496.4 31.7 L500.3 31.8 L504.1 36.1 L508.0 33.1 L511.9 35.3 L515.7 32.5 L519.6 30.6 L523.5 31.3 L527.3 30.6 L531.2 33.9 L535.1 32.6 L538.9 35.9 L542.8 29.4 L546.7 30.7 L550.5 36.1 L554.4 36.6 L558.3 30.9 L562.1 30.6 L566.0 30.9 L569.9 33.7 L573.7 36.5 L577.6 31.8 L581.5 34.5 L585.3 33.3 L589.2 29.4 L593.1 34.2 L596.9 32.8 L600.8 31.4 L604.7 33.5 L608.5 36.3 L612.4 34.4 L616.3 32.5 L620.1 29.9 L624.0 33.6" fill="none" stroke="#a93fe0" stroke-width="2" stroke-opacity="0.85" stroke-linejoin="round"><title>run 2, best dog</title></path>
+<path d="M47.9 56.7 L51.7 57.7 L55.6 83.5 L59.5 66.7 L63.3 58.6 L67.2 69.8 L71.1 69.8 L74.9 77.0 L78.8 63.7 L82.7 75.2 L86.5 63.3 L90.4 55.7 L94.3 55.9 L98.1 55.0 L102.0 76.4 L105.9 62.1 L109.7 53.1 L113.6 62.6 L117.5 52.0 L121.3 72.1 L125.2 76.8 L129.1 73.5 L132.9 87.4 L136.8 76.4 L140.7 56.0 L144.5 41.9 L148.4 62.2 L152.3 59.7 L156.1 52.2 L160.0 67.2 L163.9 48.7 L167.7 48.9 L171.6 64.8 L175.5 48.3 L179.3 49.7 L183.2 52.1 L187.1 70.7 L190.9 62.4 L194.8 66.8 L198.7 65.7 L202.5 57.4 L206.4 49.1 L210.3 35.2 L214.1 57.6 L218.0 53.6 L221.9 56.2 L225.7 44.1 L229.6 50.0 L233.5 61.6 L237.3 44.0 L241.2 40.8 L245.1 39.7 L248.9 58.4 L252.8 71.8 L256.7 40.9 L260.5 38.2 L264.4 60.1 L268.3 45.0 L272.1 63.4 L276.0 51.0 L279.9 61.4 L283.7 58.1 L287.6 47.3 L291.5 53.0 L295.3 50.8 L299.2 48.4 L303.1 42.2 L306.9 45.6 L310.8 71.0 L314.7 50.9 L318.5 50.3 L322.4 35.5 L326.3 43.6 L330.1 46.1 L334.0 61.3 L337.9 45.9 L341.7 51.2 L345.6 47.3 L349.5 47.9 L353.3 52.7 L357.2 58.9 L361.1 41.1 L364.9 46.7 L368.8 46.4 L372.7 37.0 L376.5 35.1 L380.4 42.4 L384.3 46.0 L388.1 45.9 L392.0 35.5 L395.9 36.4 L399.7 42.8 L403.6 49.5 L407.5 47.7 L411.3 41.6 L415.2 46.9 L419.1 37.8 L422.9 39.3 L426.8 44.2 L430.7 45.2 L434.5 42.0 L438.4 44.1 L442.3 40.7 L446.1 47.9 L450.0 48.3 L453.9 37.8 L457.7 45.1 L461.6 40.5 L465.5 41.0 L469.3 68.8 L473.2 45.4 L477.1 48.7 L480.9 43.2 L484.8 43.2 L488.7 39.8 L492.5 42.7 L496.4 37.2 L500.3 39.7 L504.1 42.7 L508.0 42.3 L511.9 48.9 L515.7 42.3 L519.6 35.2 L523.5 42.6 L527.3 40.3 L531.2 43.2 L535.1 38.3 L538.9 49.7 L542.8 36.2 L546.7 37.1 L550.5 48.4 L554.4 55.7 L558.3 37.1 L562.1 46.4 L566.0 40.2 L569.9 45.5 L573.7 56.7 L577.6 42.7 L581.5 47.0 L585.3 43.1 L589.2 34.0 L593.1 60.4 L596.9 44.6 L600.8 40.5 L604.7 40.7 L608.5 52.2 L612.4 45.0 L616.3 40.6 L620.1 37.8 L624.0 45.0" fill="none" stroke="#c97c12" stroke-width="2" stroke-opacity="0.6" stroke-linejoin="round"><title>run 2, batch average</title></path>
+<path d="M47.9 36.3 L51.7 34.6 L55.6 41.1 L59.5 30.9 L63.3 34.2 L67.2 35.9 L71.1 34.0 L74.9 39.1 L78.8 35.1 L82.7 32.9 L86.5 33.2 L90.4 35.1 L94.3 34.1 L98.1 32.5 L102.0 37.5 L105.9 31.9 L109.7 29.8 L113.6 31.9 L117.5 30.6 L121.3 31.3 L125.2 35.2 L129.1 36.2 L132.9 35.7 L136.8 39.3 L140.7 34.3 L144.5 30.7 L148.4 33.8 L152.3 35.0 L156.1 33.1 L160.0 37.0 L163.9 33.2 L167.7 31.2 L171.6 34.4 L175.5 32.2 L179.3 32.7 L183.2 32.7 L187.1 37.6 L190.9 32.8 L194.8 36.5 L198.7 35.8 L202.5 33.0 L206.4 32.3 L210.3 30.9 L214.1 34.1 L218.0 32.3 L221.9 32.2 L225.7 30.9 L229.6 33.2 L233.5 37.3 L237.3 30.7 L241.2 32.5 L245.1 30.9 L248.9 32.5 L252.8 37.3 L256.7 29.2 L260.5 30.0 L264.4 37.2 L268.3 31.0 L272.1 31.5 L276.0 34.9 L279.9 36.3 L283.7 38.1 L287.6 31.9 L291.5 34.5 L295.3 36.0 L299.2 34.7 L303.1 32.8 L306.9 32.7 L310.8 40.5 L314.7 31.3 L318.5 33.9 L322.4 31.4 L326.3 32.9 L330.1 32.8 L334.0 33.4 L337.9 31.9 L341.7 32.6 L345.6 32.7 L349.5 33.6 L353.3 33.9 L357.2 33.4 L361.1 32.5 L364.9 35.0 L368.8 35.6 L372.7 30.4 L376.5 29.4 L380.4 32.4 L384.3 33.2 L388.1 34.0 L392.0 30.1 L395.9 30.1 L399.7 29.9 L403.6 32.4 L407.5 37.1 L411.3 32.7 L415.2 32.3 L419.1 30.6 L422.9 30.2 L426.8 32.0 L430.7 32.7 L434.5 33.8 L438.4 32.6 L442.3 31.2 L446.1 33.0 L450.0 33.4 L453.9 31.1 L457.7 33.8 L461.6 34.0 L465.5 32.0 L469.3 34.7 L473.2 33.6 L477.1 34.6 L480.9 32.9 L484.8 34.4 L488.7 30.6 L492.5 32.4 L496.4 30.4 L500.3 31.2 L504.1 35.5 L508.0 31.5 L511.9 35.1 L515.7 31.1 L519.6 30.4 L523.5 31.3 L527.3 30.0 L531.2 33.8 L535.1 31.2 L538.9 35.1 L542.8 29.5 L546.7 30.4 L550.5 34.0 L554.4 35.2 L558.3 31.3 L562.1 30.4 L566.0 31.7 L569.9 34.6 L573.7 33.0 L577.6 30.7 L581.5 34.6 L585.3 32.9 L589.2 29.7 L593.1 35.3 L596.9 34.0 L600.8 32.4 L604.7 32.4 L608.5 35.6 L612.4 35.0 L616.3 30.0 L620.1 31.3 L624.0 33.7" fill="none" stroke="#a93fe0" stroke-width="2" stroke-opacity="0.85" stroke-linejoin="round"><title>run 3, best dog</title></path>
+<path d="M47.9 60.1 L51.7 60.6 L55.6 76.7 L59.5 50.6 L63.3 74.1 L67.2 79.6 L71.1 64.2 L74.9 76.2 L78.8 68.8 L82.7 62.0 L86.5 56.2 L90.4 74.1 L94.3 60.2 L98.1 57.1 L102.0 77.6 L105.9 68.7 L109.7 54.1 L113.6 58.8 L117.5 45.4 L121.3 60.5 L125.2 57.6 L129.1 60.7 L132.9 69.9 L136.8 70.4 L140.7 58.3 L144.5 42.1 L148.4 60.2 L152.3 59.7 L156.1 60.4 L160.0 70.8 L163.9 46.0 L167.7 54.9 L171.6 61.0 L175.5 44.1 L179.3 56.3 L183.2 60.2 L187.1 69.6 L190.9 62.5 L194.8 74.6 L198.7 68.7 L202.5 54.7 L206.4 51.5 L210.3 40.5 L214.1 59.6 L218.0 50.7 L221.9 47.8 L225.7 41.4 L229.6 50.5 L233.5 62.3 L237.3 41.0 L241.2 43.5 L245.1 45.4 L248.9 62.2 L252.8 74.3 L256.7 37.0 L260.5 37.9 L264.4 61.5 L268.3 49.9 L272.1 62.2 L276.0 46.9 L279.9 52.3 L283.7 61.3 L287.6 39.8 L291.5 48.4 L295.3 51.2 L299.2 46.5 L303.1 43.7 L306.9 43.4 L310.8 74.6 L314.7 45.2 L318.5 52.5 L322.4 41.2 L326.3 42.2 L330.1 54.0 L334.0 51.6 L337.9 47.1 L341.7 47.0 L345.6 40.2 L349.5 42.9 L353.3 44.0 L357.2 51.2 L361.1 38.8 L364.9 46.1 L368.8 53.8 L372.7 37.8 L376.5 36.0 L380.4 41.6 L384.3 44.8 L388.1 41.8 L392.0 35.2 L395.9 34.0 L399.7 40.9 L403.6 43.5 L407.5 46.2 L411.3 42.1 L415.2 43.8 L419.1 36.3 L422.9 39.9 L426.8 41.7 L430.7 43.8 L434.5 46.4 L438.4 49.2 L442.3 41.7 L446.1 53.8 L450.0 43.6 L453.9 39.3 L457.7 45.4 L461.6 40.6 L465.5 41.4 L469.3 70.1 L473.2 45.3 L477.1 52.5 L480.9 46.9 L484.8 43.0 L488.7 39.2 L492.5 41.9 L496.4 38.5 L500.3 38.5 L504.1 47.9 L508.0 45.4 L511.9 47.6 L515.7 38.7 L519.6 39.1 L523.5 60.8 L527.3 44.7 L531.2 47.9 L535.1 40.0 L538.9 56.3 L542.8 36.5 L546.7 44.5 L550.5 50.8 L554.4 66.0 L558.3 39.3 L562.1 42.9 L566.0 49.4 L569.9 58.3 L573.7 48.5 L577.6 41.1 L581.5 46.6 L585.3 50.2 L589.2 38.5 L593.1 66.0 L596.9 47.6 L600.8 43.2 L604.7 42.9 L608.5 50.2 L612.4 46.7 L616.3 38.4 L620.1 37.4 L624.0 44.9" fill="none" stroke="#c97c12" stroke-width="2" stroke-opacity="0.6" stroke-linejoin="round"><title>run 3, batch average</title></path>
+</svg>
+<div class="robot-legend"><span><i style="background:#a93fe0"></i>best dog (one line per run)</span><span><i style="background:#c97c12"></i>batch average</span></div>
+<figcaption>Score by generation for the three batches on all four fields, starting from the retrained dog. It starts high because it starts from a dog that already works.</figcaption>
+</figure>
+
+<!-- TABLE:ablation-best -->
+<div class="robot-table-wrap"><table class="robot-table">
+<thead><tr><th>switched off (best dog, all four fields)</th><th class="num">score</th><th class="num">penned all</th></tr></thead>
+<tbody>
+<tr><td>nothing (the dog as evolved)</td><td class="num">2.04</td><td class="num">31 / 32</td></tr>
+<tr><td>nearest sheep speed</td><td class="num">1.62</td><td class="num">24 / 32</td></tr>
+<tr><td>nearest sheep, where</td><td class="num">1.77</td><td class="num">28 / 32</td></tr>
+<tr><td>flock centre</td><td class="num">1.78</td><td class="num">27 / 32</td></tr>
+<tr><td>flock to pen</td><td class="num">1.79</td><td class="num">26 / 32</td></tr>
+<tr><td>nearest obstacle</td><td class="num">1.82</td><td class="num">28 / 32</td></tr>
+<tr><td>nearest sheep, how far</td><td class="num">1.84</td><td class="num">29 / 32</td></tr>
+<tr><td>how spread out</td><td class="num">1.88</td><td class="num">28 / 32</td></tr>
+<tr><td>furthest sheep</td><td class="num">1.97</td><td class="num">31 / 32</td></tr>
+<tr><td>flock drift</td><td class="num">1.99</td><td class="num">30 / 32</td></tr>
+<tr><td>flock speed</td><td class="num">2.02</td><td class="num">31 / 32</td></tr>
+<tr><td>share still loose</td><td class="num">2.03</td><td class="num">31 / 32</td></tr>
+<tr><td>sheep left behind</td><td class="num">2.08</td><td class="num">32 / 32</td></tr>
+</tbody></table></div>
+<!-- /TABLE -->
+
+The other thing that table shows is that there's no longer any one input you can take away and break it. The open-field dog fell to nothing without the nearest sheep's distance; the retrained dog fell to nothing without it, or without the flock centre, or without the pen. This one drops a bit whatever you take away, and most without the nearest sheep's speed, but it never collapses. Being trained on four fields didn't just make it better at each of them, it made it lean on more things at once, so that no single number is holding the whole dog up. That's the closest this post gets to a general dog, and it took an hour.
 
 ## What I took from it
 
-I expected to get the paper's two rules out of this and I got a different dog each time. On the open field evolution found something simpler than the paper, a one-input dog that's faster than the hand-written one and can't do anything else. Put the awkward sheep and the obstacles in the training and it found something that looks at four or five things instead of one, gets round a pond and a wall without ever looking at them, and still only half overlaps with the paper's rules. It didn't get all the way there either, and it did worse on the farm than on the fields it was trained on, so the lesson is the same one twice: it learns the field it's given and not much more. The rules the paper found weren't the simplest rules that work, they were the simplest rules that work on the fields a real collie has to work.
+I expected to get the paper's two rules out of this and I got a different dog each time. On the open field evolution found something simpler than the paper, a one-input dog that's faster than the hand-written one and can't do anything else. Put the awkward sheep and the obstacles in the training and it found something that looks at four or five things instead of one, gets round a pond and a wall without ever looking at them, and still only half overlaps with the paper's rules. Put all four fields in and start it from that dog, and it becomes a dog that's better than mine on three fields out of four and doesn't depend on any one thing it can see. The lesson is the same one three times: it learns the fields it's given, and the way to get a general dog is to give it general fields, not cleverer eyes. The rules the paper found weren't the simplest rules that work, they were the simplest rules that work on the fields a real collie has to work.
 
 The other thing is that I can read the paper's dog, and I can only measure this one. I know what the robot collie does because I switched its inputs off one at a time and watched what broke, and because I wrote a thing that guesses what it's doing in the paper's words. It works better on the field it was made for and I understand it less, and I suspect that's the usual trade from here on.
 

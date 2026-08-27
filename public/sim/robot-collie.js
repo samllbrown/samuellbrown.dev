@@ -27,8 +27,13 @@
 	var SD = globalThis.__Sheepdog;
 	if (!SD) throw new Error('robot-collie.js needs sheepdog.js');
 
-	var N_IN = 17, N_HID = 10, N_OUT = 3;
-	var GENOME_LEN = N_IN * N_HID + (N_HID + 1) * N_OUT; // 203
+	// Dogs can have different numbers of inputs: the first N_IN-1 of the feature
+	// list below plus the bias. A genome's length says how many its dog has.
+	var N_FEAT = 21, N_HID = 10, N_OUT = 3;
+	var N_IN = 17;                                            // the default for new dogs
+	function genomeLen(nIn) { return nIn * N_HID + (N_HID + 1) * N_OUT; }
+	function inputsOf(g) { return (g.length - (N_HID + 1) * N_OUT) / N_HID; }
+	var GENOME_LEN = genomeLen(N_IN); // 203
 	var SCALE = 40;   // field units per input unit
 	var len = SD.len, W = SD.W, H = SD.H, TARGET = SD.TARGET, R_A = SD.R_A;
 
@@ -53,8 +58,14 @@
 		{ name: 'distance to nearest obstacle', short: 'obstacle d' },
 		{ name: 'how fast the nearest sheep is moving', short: 'nearest v' },
 		{ name: 'how fast the flock centre is moving', short: 'flock v' },
+		{ name: 'sheep left furthest behind, across', short: 'behind x' },
+		{ name: 'sheep left furthest behind, up/down', short: 'behind y' },
+		{ name: 'which way the flock is drifting, across', short: 'drift x' },
+		{ name: 'which way the flock is drifting, up/down', short: 'drift y' },
 		{ name: 'bias (always 1)', short: 'bias' },
 	];
+	/** The feature names a dog with nIn inputs actually sees (its inputs, then the bias). */
+	function featuresFor(nIn) { return FEATURES.slice(0, nIn - 1).concat([FEATURES[N_FEAT - 1]]); }
 	var FEATURE_NAMES = FEATURES.map(function (f) { return f.name; });
 
 	function nearestObstacle(sim, x, y) {
@@ -76,7 +87,7 @@
 	}
 
 	function features(sim) {
-		var f = new Float64Array(N_IN);
+		var f = new Float64Array(N_FEAT);
 		var dog = sim.dog, sheep = sim.sheep, n = sheep.length;
 		var gx = 0, gy = 0, loose = 0;
 		for (var i = 0; i < n; i++) if (!sheep[i].penned) { gx += sheep[i].x; gy += sheep[i].y; loose++; }
@@ -107,19 +118,34 @@
 		// Is anything actually moving? (In units of a sheep's running speed.)
 		f[14] = Math.min(2, (near.speed || 0) / SD.SHEEP_SPEED);
 		var pg = sim.prevGcm;
-		f[15] = pg ? Math.min(2, len(gx - pg.x, gy - pg.y) / SD.SHEEP_SPEED) : 0;
+		var vx = pg ? gx - pg.x : 0, vy = pg ? gy - pg.y : 0, vl = len(vx, vy);
+		f[15] = pg ? Math.min(2, vl / SD.SHEEP_SPEED) : 0;
 		sim.prevGcm = { x: gx, y: gy };
-		f[16] = 1;
+		// The sheep left furthest behind: most against the direction from the flock to the pen.
+		var ux = TARGET.x - gx, uy = TARGET.y - gy, ul = len(ux, uy); ux /= ul; uy /= ul;
+		var behind = null, bd = Infinity;
+		for (var q = 0; q < n; q++) {
+			var sq = sheep[q];
+			if (sq.penned) continue;
+			var proj = (sq.x - gx) * ux + (sq.y - gy) * uy;
+			if (proj < bd) { bd = proj; behind = sq; }
+		}
+		f[16] = (behind.x - dog.x) / SCALE; f[17] = (behind.y - dog.y) / SCALE;
+		// Which way the flock is drifting (unit vector, or nothing if it isn't).
+		f[18] = vl > 1e-6 ? vx / vl : 0; f[19] = vl > 1e-6 ? vy / vl : 0;
+		f[20] = 1;
 		return f;
 	}
 
 	// ---- The network -------------------------------------------------------------
+	// f is the full feature vector; the dog reads its first nIn-1 entries plus the bias.
 	function act(g, f) {
-		var h = new Float64Array(N_HID + 1);
+		var nIn = inputsOf(g), h = new Float64Array(N_HID + 1);
 		var k = 0;
 		for (var i = 0; i < N_HID; i++) {
 			var s = 0;
-			for (var j = 0; j < N_IN; j++) s += g[k++] * f[j];
+			for (var j = 0; j < nIn - 1; j++) s += g[k++] * f[j];
+			s += g[k++] * f[N_FEAT - 1];
 			h[i] = Math.tanh(s);
 		}
 		h[N_HID] = 1;
@@ -138,7 +164,7 @@
 			var f = features(sim);
 			if (!sim.gcm) return null;
 			var a = act(g, f);
-			sim.lastThought = { inputs: f, act: a };
+			sim.lastThought = { inputs: f, act: a, nIn: inputsOf(g) };
 			return a;
 		};
 	}
@@ -221,10 +247,23 @@
 		var u = 1 - rng(), v = rng();
 		return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 	}
-	function randomGenome(rng) {
-		var g = new Float64Array(GENOME_LEN);
-		for (var i = 0; i < GENOME_LEN; i++) g[i] = randn(rng) * 0.5;
+	function randomGenome(rng, nIn) {
+		var L = genomeLen(nIn || N_IN), g = new Float64Array(L);
+		for (var i = 0; i < L; i++) g[i] = randn(rng) * 0.5;
 		return g;
+	}
+	/** Give an existing dog more inputs, with zero weights on the new ones, so it behaves exactly as before to start with. */
+	function extendGenome(g, nInNew) {
+		var nInOld = inputsOf(g);
+		if (nInOld >= nInNew) return Float64Array.from(g);
+		var out = new Float64Array(genomeLen(nInNew)), k = 0, o = 0;
+		for (var h = 0; h < N_HID; h++) {
+			for (var j = 0; j < nInOld - 1; j++) out[o++] = g[k++];
+			for (var z = nInOld - 1; z < nInNew - 1; z++) out[o++] = 0;
+			out[o++] = g[k++]; // bias weight
+		}
+		while (k < g.length) out[o++] = g[k++];
+		return out;
 	}
 
 	function Evolver(opts) {
@@ -237,18 +276,20 @@
 		this.mutRate = opts.mutRate == null ? 0.1 : opts.mutRate;
 		this.mutSigma = opts.mutSigma == null ? 0.3 : opts.mutSigma;
 		this.tournament = opts.tournament || 3;
+		this.nIn = opts.nIn || N_IN;
 		this.rng = SD.mulberry32(opts.seed || 1);
 		this.gen = 0;
 		this.pop = [];
 		// Optionally carry on from existing dogs: keep them, and fill the rest of the batch with mutated copies.
-		var from = opts.seedGenomes || [];
+		var self = this, from = (opts.seedGenomes || []).map(function (g) { return extendGenome(Float64Array.from(g), self.nIn); });
+		var L = genomeLen(this.nIn);
 		for (var i = 0; i < this.popSize; i++) {
 			if (i < from.length) this.pop.push(Float64Array.from(from[i]));
 			else if (from.length) {
-				var src = from[i % from.length], child = new Float64Array(GENOME_LEN);
-				for (var q = 0; q < GENOME_LEN; q++) child[q] = src[q] + (this.rng() < this.mutRate ? randn(this.rng) * this.mutSigma : 0);
+				var src = from[i % from.length], child = new Float64Array(L);
+				for (var q = 0; q < L; q++) child[q] = src[q] + (this.rng() < this.mutRate ? randn(this.rng) * this.mutSigma : 0);
 				this.pop.push(child);
-			} else this.pop.push(randomGenome(this.rng));
+			} else this.pop.push(randomGenome(this.rng, this.nIn));
 		}
 		this.history = [];      // {gen, best, mean, penned, pennedFrac, champion}
 	}
@@ -289,9 +330,10 @@
 		}
 		var next = [];
 		for (var e = 0; e < this.elite && e < P; e++) next.push(Float64Array.from(this.pop[order[e]]));
+		var L = genomeLen(this.nIn);
 		while (next.length < P) {
-			var a = pick(), b2 = pick(), child = new Float64Array(GENOME_LEN);
-			for (var q = 0; q < GENOME_LEN; q++) {
+			var a = pick(), b2 = pick(), child = new Float64Array(L);
+			for (var q = 0; q < L; q++) {
 				child[q] = rng() < 0.5 ? a[q] : b2[q];
 				if (rng() < this.mutRate) child[q] += randn(rng) * this.mutSigma;
 			}
@@ -306,18 +348,22 @@
 	// Filled in from scripts/robot-collie-experiments.mjs.
 	//   open: evolved on the open field only (the paper's field).
 	//   farm: evolved on a mix of the awkward flock and the obstacle field.
+	//   best: the retrained dog carried on with four more inputs, on all four fields at once.
 	var EVOLVED = {
 		open: [-1.4225, -1.5219, 0.3040, -0.2787, 1.0287, -0.3308, 0.2114, -0.5077, 0.8770, -1.2454, -0.2926, -1.6534, 1.5058, -0.7361, 0.2071, -0.2452, -0.1599, 2.4044, -1.4415, -1.3125, 0.1183, -0.7881, 0.6042, 1.3504, -0.3183, 0.2244, -0.7504, -1.7610, 0.6119, -1.2405, -1.5188, 1.5369, -0.9116, 1.2736, -0.9429, 1.4458, 2.2366, -0.4767, -1.2445, 0.1409, -1.8631, -0.6782, 0.5973, -0.5553, 0.3747, 1.4474, 0.1490, 0.2709, -0.1389, -0.1305, -0.9823, 0.1815, 2.2543, 0.4083, 0.6115, -0.3660, 0.2133, -0.2027, 0.9270, 1.7389, 1.0472, -1.9267, 1.4088, -1.1566, 0.2212, 0.7535, 1.5976, -0.0786, -0.7499, 0.3232, 1.3645, -0.3999, -0.1991, 0.4607, -2.1158, 1.8059, 0.2064, -0.8555, 0.5905, -1.2439, -0.2743, 0.7221, 1.5968, 0.8479, -0.8110, -0.1988, -0.2077, 0.3929, 1.1214, -2.5596, 0.1771, 1.2307, -0.8313, 0.6548, -0.0690, -1.2168, 1.1361, -0.4033, -0.3595, -0.7817, 1.2477, -1.1074, -2.2346, -0.7954, -1.4354, -0.7455, 0.4178, 1.9006, 1.0536, 0.2512, -1.1599, -1.9523, -2.0885, -0.0402, 0.6500, 0.6361, 1.4986, 0.8300, 1.3042, 0.9567, -2.3484, 1.3850, -0.3109, -0.6226, 2.4408, 2.7884, 0.3826, 1.3818, -1.0681, 1.3089, 1.4015, -0.6505, 0.2675, -0.5542, -0.8420, -1.2755, 0.5408, -0.2387, 0.9364, -0.8543, 0.4693, -0.2973, 0.0278, 0.6141, 0.3824, 2.1730, 0.7293, 1.9643, -1.2546, -1.2993, 0.3580, -0.0951, -1.1240, -1.8508, -0.4458, 0.2678, -0.5555, -0.9778, -0.9960, -1.7581, 1.4564, -0.1955, 1.1256, -2.0586, -0.7313, -1.5664, -0.9885, 0.2898, -1.3096, 0.5613, 1.7452, -0.0155, -0.4600, -0.2248, -0.4201, 0.8503, -2.7612, 1.5421, 1.6316, -1.4740, 0.5998, -0.0895, -0.2460, -0.1771, 0.7044, 0.7550, -1.2215, -2.3056, -1.3999, -0.0744, 0.4504, -2.0543, 1.5838, -1.0092, 0.7419, 0.1638, 1.1018, -1.6861, 0.0667, 0.3958, 1.2511, -0.9744, 0.5309],
 		farm: [1.3733, 1.3491, -0.5969, 0.1144, -1.5630, -1.9266, -0.7862, -0.7704, 0.6589, 4.1773, 1.1226, 0.8686, -1.5410, -0.1240, -0.4769, -3.9986, -0.2395, 0.2949, -0.2731, 0.0232, 0.4488, -1.8590, -0.3247, 0.1788, 0.1327, 0.5866, -1.9236, -0.0571, -0.5832, 0.9950, 1.1311, 1.7745, -2.0210, 0.0181, 0.4789, -0.4535, -0.8263, -0.9012, -1.7303, -0.9233, 0.2198, 0.9188, -0.1378, 0.8509, -0.2990, 0.2913, 0.4368, -1.6706, -2.4772, -1.5137, -1.5489, -1.5540, 1.0507, 1.4266, 1.4073, -0.7305, -1.4425, 1.2734, 2.5769, -0.1316, 0.0773, 2.2687, 0.3336, -0.0158, 0.1647, -2.8188, 0.6683, -1.1882, -1.5640, 1.5794, -1.4127, 0.4618, -0.5183, -0.6325, -0.7782, -1.6699, -1.5994, 1.3489, 0.4906, -0.0828, 1.5603, 0.6241, -2.5241, -0.9837, -0.4594, -1.2347, -1.9890, 2.5821, 0.0590, 0.1346, 1.6494, 1.0142, 0.0834, 2.7201, -0.7264, -2.2120, 1.2403, -1.4872, -0.1457, -0.0175, 0.5970, -1.1604, 0.9620, 0.3515, 4.2942, 0.4445, -0.7817, 2.5488, -0.1050, 1.4647, 3.1974, -0.5658, 1.9115, 0.1471, -0.5776, -0.0009, -1.9572, -3.4807, -0.3782, -0.6744, 3.2198, -2.0216, 1.0520, -0.3438, -0.6444, -2.0788, -0.8419, -0.1508, 1.4411, 0.7406, -0.8217, 1.1337, 1.2512, 1.4353, 0.5340, 0.6872, -1.7038, -0.0194, 0.1260, -0.9671, 1.7711, 0.6822, 1.0157, 0.1384, -0.2694, 2.0861, -0.7152, -1.5193, -0.9551, 0.4116, -0.0571, -0.4725, 0.0435, -2.2110, 1.4411, -2.8774, -0.7370, -0.2566, 1.5545, 0.4216, -0.9096, 2.1399, 2.4158, -0.7342, 0.5638, 0.4722, -1.8546, 0.0477, 0.3906, 1.7384, 2.0306, 0.3549, 0.4113, 0.4895, 0.3713, -1.9459, 3.8287, -1.6713, -0.4823, -0.4636, -1.9202, 2.1504, -0.4563, -1.0695, -0.1255, 0.5542, -0.8639, -1.0452, 0.4478, 0.3161, -0.5673, 0.1406, 1.0939, -1.2658, -1.0663, 1.5363, -2.1946, 0.0719, 0.6982, 1.2771, -1.8769, -1.2657, 2.3700],
+		best: [0.2954, 1.7747, 2.3452, 0.8101, -2.3930, -0.8712, -1.0258, -1.0134, 0.9589, 6.1787, 1.4285, -0.9116, -1.0708, 0.9196, -1.7498, -2.8951, -0.0623, 1.1484, 1.3173, -1.0642, -0.5917, 0.3368, -0.6441, -0.2426, 0.9892, -1.0777, -0.4318, -0.1176, -0.8540, 1.2186, -3.3133, -0.1736, -1.6978, 1.8003, -0.7045, 2.9553, -2.5681, 0.0433, -3.9889, -1.1406, 0.2276, -0.4682, 1.8562, 0.1555, 0.1154, -0.1325, -1.8389, -1.9077, -0.0545, 3.3791, 2.0182, -0.6433, -1.0026, 1.6376, 1.5387, -2.5538, -5.0081, -0.7791, 0.6127, 2.9786, -2.2524, 0.0002, -1.8390, -2.1443, 1.2821, 1.4111, -0.0941, 0.4011, -0.2200, 1.3320, 4.5537, 1.2691, 0.7607, 1.2025, -1.8175, 0.9568, 0.8471, -3.0712, 0.8242, 1.2313, 0.3583, 0.5062, 0.9852, -0.8323, -3.0050, 0.1888, -1.6015, 0.3709, 1.6070, -0.9820, -0.5028, -1.7370, -1.4175, 1.0675, 0.6530, -0.1603, 0.0111, 0.5983, -0.9983, -2.6625, -0.7496, 0.3261, -0.7805, -1.4451, 0.8271, -2.6809, -2.5308, 2.6788, 1.7204, 0.4743, 2.6839, 2.0125, 0.4479, 2.3920, 1.2532, -1.4208, -0.6778, -1.8084, -1.4544, 0.7389, 2.0585, -0.8900, -0.8539, -0.6402, -0.2142, -2.2844, 1.0991, -0.8958, 3.5937, -0.2680, -0.3464, 4.1869, -0.1791, 1.1453, 3.4267, -1.2215, 2.1086, 0.6905, -0.4560, -0.2130, -3.1114, -4.1016, 3.1115, -0.6858, -0.4220, -0.2352, -0.5106, -2.0351, 1.6907, -2.5515, 2.1252, -1.2467, -1.7640, -1.5407, -2.2375, 0.0307, 1.5752, 2.8918, 0.1652, 0.2687, 0.6402, 1.9844, 1.0032, 0.4399, -0.5636, -2.6806, -1.7765, 2.6585, -2.6997, -1.2697, 0.4137, -0.8575, 0.3521, 0.1489, 1.1132, 0.4025, 0.5093, 1.8975, -0.1158, -0.7120, 1.1584, -0.2216, -0.7197, -0.8652, 0.9325, -0.9995, 1.2489, -0.8033, 1.1180, -3.0004, 2.2437, -2.8484, 1.9428, 0.0859, 1.5574, 0.6555, 0.3231, 2.7751, 2.9259, -0.7578, 0.0730, 1.8343, -1.3200, -0.2138, 0.6572, -0.4151, -0.5712, -0.6884, 0.1721, -1.3396, 0.7787, -0.0280, -0.1979, -0.7442, -0.8161, -2.4863, 4.8801, -1.5088, 0.8688, 0.6738, -2.4223, 3.5939, -0.7602, -1.7672, 0.9177, 1.8579, 0.1001, -2.8038, -0.9591, -0.8024, 0.3701, -0.9676, 0.6484, -0.9996, -1.4703, 1.7354, -0.3920, -0.7395, 1.2295, 0.8710, -0.1773, -2.3256, 4.5508],
 	};
 
 	globalThis.__RobotCollie = {
-		N_IN: N_IN, N_HID: N_HID, GENOME_LEN: GENOME_LEN, FEATURES: FEATURES, FEATURE_NAMES: FEATURE_NAMES,
+		N_IN: N_IN, N_FEAT: N_FEAT, N_HID: N_HID, GENOME_LEN: GENOME_LEN, FEATURES: FEATURES, FEATURE_NAMES: FEATURE_NAMES, featuresFor: featuresFor,
+		genomeLen: genomeLen, inputsOf: inputsOf, extendGenome: extendGenome,
 		features: features, act: act, makeBrain: makeBrain, evaluate: evaluate, readThought: readThought,
 		randomGenome: randomGenome, Evolver: Evolver, EVOLVED: EVOLVED,
 	};
 	globalThis.__SheepdogBrains = globalThis.__SheepdogBrains || {};
-	for (var bk in EVOLVED) if (EVOLVED[bk] && EVOLVED[bk].length === GENOME_LEN) globalThis.__SheepdogBrains[bk] = makeBrain(Float64Array.from(EVOLVED[bk]));
+	function validGenome(g) { return g && Number.isInteger(inputsOf(g)) && inputsOf(g) >= 2 && inputsOf(g) <= N_FEAT; }
+	for (var bk in EVOLVED) if (validGenome(EVOLVED[bk])) globalThis.__SheepdogBrains[bk] = makeBrain(Float64Array.from(EVOLVED[bk]));
 
 	// ---- Worker ------------------------------------------------------------------------------
 	if (isWorker) {
@@ -499,7 +545,7 @@
 		var inputsEl = q('[data-role="inputs"]'), hiddenEl = q('[data-role="hidden"]'), outEl = q('[data-role="outputs"]');
 		var statusEl = q('[data-role="status"]'), tallyEl = q('[data-role="tally"]'), workEl = q('[data-role="work"]');
 		var sim = new SD.Sim(level), px = 1, tally = { DRIVE: 0, COLLECT: 0, neither: 0 }, started = false;
-		var genome = EVOLVED[brainName] && EVOLVED[brainName].length === GENOME_LEN ? Float64Array.from(EVOLVED[brainName]) : null;
+		var genome = validGenome(EVOLVED[brainName]) ? Float64Array.from(EVOLVED[brainName]) : null;
 		sim.reset(11);
 
 		function bars(el, values, names, signed) {
@@ -560,7 +606,8 @@
 				if (t && sim.state === 'running') {
 					var th = readThought(sim, t.act.hx, t.act.hy);
 					tally[th.label] = (tally[th.label] || 0) + 1;
-					bars(inputsEl, Array.from(t.inputs), FEATURES.map(function (f) { return f.short; }), true);
+					var own = featuresFor(t.nIn), vals = Array.from(t.inputs).slice(0, t.nIn - 1); vals.push(1);
+					bars(inputsEl, vals, own.map(function (f) { return f.short; }), true);
 					bars(hiddenEl, Array.from(t.act.hidden).slice(0, N_HID), ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8', 'h9', 'h10'], true);
 					if (outEl) {
 						var ang = Math.round(Math.atan2(t.act.hy, t.act.hx) * 180 / Math.PI);
