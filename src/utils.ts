@@ -16,7 +16,11 @@ export function formatDate(date: Date): string {
 }
 
 export function readingTime(body: string): string {
-	const words = body.trim().split(/\s+/).length;
+	// Count prose only: drop embedded scripts, styles, inline SVG and tags.
+	const prose = body
+		.replace(/<(script|style|svg)[\s\S]*?<\/\1>/g, ' ')
+		.replace(/<[^>]+>/g, ' ');
+	const words = prose.trim().split(/\s+/).length;
 	return `${Math.max(1, Math.round(words / 200))} min read`;
 }
 

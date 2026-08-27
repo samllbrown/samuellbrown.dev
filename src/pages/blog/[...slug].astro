@@ -23,7 +23,8 @@ export async function getStaticPaths() {
 }
 
 const { entry, newer, older } = Astro.props;
-const { Content } = await entry.render();
+const { Content, headings } = await entry.render();
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 ---
 
 <BaseLayout
@@ -32,7 +33,8 @@ const { Content } = await entry.render();
 	image={`/og/${entry.slug}.png`}
 >
 	<div class="progress" aria-hidden="true"></div>
-	<main class="wrapper stack gap-8">
+	<main class="wrapper post-main">
+	<div class="stack gap-8 post-body">
 		<header class="stack gap-4">
 			<a class="back-link" href="/blog/"><Icon icon="arrow-left" size="1.2em" /> All posts</a>
 			<h1>{entry.data.title}</h1>
@@ -86,6 +88,24 @@ const { Content } = await entry.render();
 		</nav>
 
 		<Comments />
+	</div>
+	{
+		toc.length > 2 && (
+			<aside class="toc" aria-label="On this page" data-pagefind-ignore>
+				<p class="toc-label">On this page</p>
+				<nav class="toc-nav">
+					<div class="toc-marker" aria-hidden="true"></div>
+					<ul>
+						{toc.map((h) => (
+							<li class={h.depth === 3 ? 'depth-3' : ''}>
+								<a href={`#${h.slug}`} data-slug={h.slug}>{h.text.replace(/\s*#\s*$/, '')}</a>
+							</li>
+						))}
+					</ul>
+				</nav>
+			</aside>
+		)
+	}
 	</main>
 </BaseLayout>
 
@@ -101,12 +121,152 @@ const { Content } = await entry.render();
 		addEventListener('scroll', update, { passive: true });
 	}
 	document.addEventListener('astro:page-load', trackProgress);
+
+	// "On this page": highlight the heading that's currently in view and slide the marker to it.
+	function trackToc() {
+		const toc = document.querySelector<HTMLElement>('.toc');
+		if (!toc) return;
+		const links = Array.from(toc.querySelectorAll<HTMLAnchorElement>('a[data-slug]'));
+		const marker = toc.querySelector<HTMLElement>('.toc-marker');
+		const heads = links.map((a) => document.getElementById(a.dataset.slug || '')).filter(Boolean) as HTMLElement[];
+		if (!heads.length) return;
+		let current = '';
+		const update = () => {
+			const line = window.innerHeight * 0.3;
+			let active = heads[0];
+			for (const h of heads) if (h.getBoundingClientRect().top <= line) active = h;
+			if (active.id === current) return;
+			current = active.id;
+			links.forEach((a) => a.classList.toggle('active', a.dataset.slug === current));
+			const a = links.find((l) => l.dataset.slug === current);
+			if (a && marker) {
+				const nav = toc.querySelector<HTMLElement>('.toc-nav')!;
+				marker.style.top = `${a.offsetTop - nav.offsetTop + nav.scrollTop}px`;
+				marker.style.height = `${a.offsetHeight}px`;
+				marker.style.opacity = '1';
+				const top = a.offsetTop - nav.offsetTop;
+				if (top < nav.scrollTop || top > nav.scrollTop + nav.clientHeight - a.offsetHeight) nav.scrollTo({ top: top - nav.clientHeight / 2, behavior: 'smooth' });
+			}
+		};
+		update();
+		addEventListener('scroll', update, { passive: true });
+		addEventListener('resize', update);
+	}
+	document.addEventListener('astro:page-load', trackToc);
 </script>
 
 <style>
 	main {
 		max-width: 60rem;
 		padding-block: 3rem;
+	}
+
+	.post-body {
+		min-width: 0;
+	}
+
+	/* "On this page", beside the post on wide screens, hidden otherwise. */
+	.toc {
+		display: none;
+	}
+
+	/* Medium-wide screens: the article gives up a little room on the right for the sidebar. */
+	@media (min-width: 78em) {
+		main.post-main {
+			max-width: 72rem;
+			display: grid;
+			grid-template-columns: minmax(0, 60rem) 11rem;
+			gap: 1rem;
+			align-items: start;
+		}
+
+		.toc {
+			/* fixed rather than sticky: an overflow rule further up the page defeats sticky */
+			display: block;
+			position: fixed;
+			top: 6rem;
+			left: calc(50% + 25rem);
+			width: 11rem;
+			font-size: var(--text-sm);
+			line-height: 1.45;
+		}
+	}
+
+	/* Wide screens: the article sits exactly where it does on every other post, sidebar in the margin. */
+	@media (min-width: 88em) {
+		main.post-main {
+			max-width: 60rem;
+			display: block;
+		}
+
+		.toc {
+			left: calc(50% + 31.5rem);
+		}
+	}
+
+	.toc-label {
+		margin: 0 0 0.6rem;
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--gray-300);
+	}
+
+	.toc-nav {
+		position: relative;
+		border-left: 2px solid var(--gray-800);
+		max-height: calc(100dvh - 9rem);
+		overflow-y: auto;
+		scrollbar-width: none;
+		mask-image: linear-gradient(to bottom, transparent, #000 1rem, #000 calc(100% - 1rem), transparent);
+	}
+
+	.toc-nav::-webkit-scrollbar {
+		display: none;
+	}
+
+	.toc-marker {
+		position: absolute;
+		left: -2px;
+		top: 0;
+		width: 2px;
+		height: 0;
+		background: var(--accent-dark);
+		border-radius: 2px;
+		opacity: 0;
+		transition: top 0.2s ease, height 0.2s ease, opacity 0.2s ease;
+	}
+
+	.toc ul {
+		list-style: none;
+		margin: 0;
+		padding: 0.5rem 0;
+	}
+
+	.toc li {
+		margin: 0;
+	}
+
+	.toc li.depth-3 a {
+		padding-left: 1.8rem;
+	}
+
+	.toc a {
+		display: block;
+		padding: 0.22rem 0 0.22rem 0.9rem;
+		color: var(--gray-300);
+		text-decoration: none;
+	}
+
+	.toc a:hover {
+		color: var(--gray-100);
+	}
+
+	.toc a.active {
+		color: var(--gray-0);
+		font-weight: 500;
 	}
 
 	header {

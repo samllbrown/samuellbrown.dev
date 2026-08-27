@@ -28,6 +28,8 @@
 	var DOG_SPEED = 0.39;    // paper ratio: dog 1.5× sheep
 	var RHO_O = 1.6;         // weight: repulsion from obstacles
 	var TICKS_PER_SEC = 60;
+	var STOP_OFF = 4;        // no dog of ours closes in on a sheep nearer than this
+	var CONFIG = { standoff: STOP_OFF, standoffSlow: 1, turnLimit: 0.15 }; // robot collie body; the experiments script can vary these
 
 	// Pen on the right, open on the left, with guide fences to the field edges.
 	var PEN = { x0: W - 24, x1: W - 3, y0: H / 2 - 12, y1: H / 2 + 12 };
@@ -103,6 +105,10 @@
 		field: { n: 30, traits: false, obstacles: true, spread: [6, 38], autostart: false, flank: true },
 		farm: { n: 60, traits: true, obstacles: true, spread: [6, 40], autostart: false, flank: true },
 		// Benchmark-only variants.
+		open: { n: 30, traits: false, obstacles: false, spread: [6, 68], autostart: false, flank: true },
+		// The robot collie post's versions of the awkward flock and the farm: same personalities, no old ewes.
+		awkward: { n: 36, traits: true, ewes: false, obstacles: false, spread: [6, 68], autostart: false, flank: true, dogSpeed: 0.8 },
+		farm2: { n: 60, traits: true, ewes: false, obstacles: true, spread: [6, 40], autostart: false, flank: true },
 		fieldnaive: { n: 30, traits: false, obstacles: true, spread: [6, 38], autostart: false, naive: true, flank: false },
 		mindsnaive: { n: 36, traits: true, obstacles: false, spread: [6, 68], autostart: false, flank: false },
 		farmnaive: { n: 60, traits: true, obstacles: true, spread: [6, 40], autostart: false, flank: false },
@@ -138,6 +144,8 @@
 	function Sim(levelName) {
 		this.level = LEVELS[levelName] || LEVELS.paper;
 		this.levelName = levelName;
+		this.rand = Math.random;   // sheep and dog noise; swap for a seeded one when benchmarking
+		this.brain = null;         // a function(sim) -> {hx, hy, speed} for mode 'brain' (the robot collie)
 		this.reset(1);
 	}
 
@@ -172,8 +180,8 @@
 			}
 			this.sheep.push(s);
 		}
-		// Two or three old ewes per flock, whatever its size.
-		if (L.traits) {
+		// Two or three old ewes per flock, whatever its size (unless the level says not).
+		if (L.traits && L.ewes !== false) {
 			var want = 2 + (rng() < 0.5 ? 1 : 0), guard = 0;
 			while (counts.stubborn < want && guard++ < 200) {
 				var pick = this.sheep[Math.floor(rng() * this.sheep.length)];
@@ -202,11 +210,17 @@
 		this.pennedCount = 0;
 	};
 
-	Sim.prototype.start = function (mode) {
+	// mode is 'collie', 'manual' or 'brain'. A brain mode may be written 'brain:name',
+	// in which case the named brain from globalThis.__SheepdogBrains drives the dog.
+	Sim.prototype.start = function (mode, dogName) {
 		this.reset(this.seed);
-		this.mode = mode;
-		this.state = mode === 'manual' ? 'armed' : 'running'; // manual clock starts on first move
-		if (mode === 'manual') this.pointer = { x: this.dog.x, y: this.dog.y };
+		var parts = String(mode).split(':');
+		this.mode = parts[0];
+		this.modeKey = mode;
+		if (parts[0] === 'brain' && parts[1]) this.brain = (globalThis.__SheepdogBrains || {})[parts[1]] || null;
+		this.dogName = dogName || (this.mode === 'manual' ? 'You' : this.mode === 'brain' ? 'The robot collie' : 'The collie');
+		this.state = this.mode === 'manual' ? 'armed' : 'running'; // manual clock starts on first move
+		if (this.mode === 'manual') this.pointer = { x: this.dog.x, y: this.dog.y };
 	};
 
 	// Move without crossing fences/walls (slide), stay off circles, stay in field.
@@ -259,12 +273,12 @@
 					var ox = sheep[j].x - s.x, oy = sheep[j].y - s.y;
 					nb.push({ d: len(ox, oy), x: ox, y: oy });
 				}
-				nb.sort(function (a, b) { return a.d - b.d; });
-				var cx = 0, cy = 0;
-				for (var q = 0; q < nb.length; q++) { cx += nb[q].x; cy += nb[q].y; }
+				var cx = 0, cy = 0, rx = 0, ry = 0;
+				for (var q = 0; q < nb.length; q++) {
+					cx += nb[q].x; cy += nb[q].y;
+					if (nb[q].d < R_A) { rx -= nb[q].x / nb[q].d; ry -= nb[q].y / nb[q].d; }
+				}
 				var cl = len(cx, cy); if (cl > 1e-6) { cx /= cl; cy /= cl; } else { cx = 0; cy = 0; }
-				var rx = 0, ry = 0;
-				for (var r = 0; r < nb.length && nb[r].d < R_A; r++) { rx -= nb[r].x / nb[r].d; ry -= nb[r].y / nb[r].d; }
 				var rl = len(rx, ry); if (rl > 1e-6) { rx /= rl; ry /= rl; }
 				var sx = dx / dd, sy = dy / dd;
 				// Obstacles push back within a short margin.
@@ -288,7 +302,7 @@
 					var ld = leaders[0], lvx = ld.x - s.x, lvy = ld.y - s.y, lvl = len(lvx, lvy);
 					lx = lvx / lvl * 0.5; ly = lvy / lvl * 0.5;
 				}
-				var na = Math.random() * Math.PI * 2;
+				var na = this.rand() * Math.PI * 2;
 				hx = HW * s.hx + C * s.social * cx + RHO_A * rx + RHO_S * sx + RHO_O * obx + lx + E * Math.cos(na);
 				hy = HW * s.hy + C * s.social * cy + RHO_A * ry + RHO_S * sy + RHO_O * oby + ly + E * Math.sin(na);
 				var hl = len(hx, hy); hx /= hl; hy /= hl;
@@ -337,8 +351,8 @@
 					}
 				}
 				next[i] = { hx: hx, hy: hy, move: SHEEP_SPEED * s.flighty };
-			} else if (Math.random() < P_GRAZE) {
-				var ga = Math.random() * Math.PI * 2;
+			} else if (this.rand() < P_GRAZE) {
+				var ga = this.rand() * Math.PI * 2;
 				next[i] = { hx: Math.cos(ga), hy: Math.sin(ga), move: SHEEP_SPEED * 0.6 };
 			} else {
 				next[i] = { hx: s.hx, hy: s.hy, move: 0 };
@@ -348,6 +362,7 @@
 		for (var m = 0; m < n; m++) {
 			var t = sheep[m], u = next[m];
 			t.hx = u.hx; t.hy = u.hy;
+			t.speed = u.move;
 			if (u.move > 0) {
 				var p = this.move(t.x, t.y, t.x + u.hx * u.move, t.y + u.hy * u.move, true);
 				t.x = p.x; t.y = p.y;
@@ -537,6 +552,50 @@
 
 	Sim.prototype.stepDog = function () {
 		var dog = this.dog, target;
+		if (this.mode === 'brain') {
+			// A learned controller: it gets a heading and a speed, nothing else.
+			// No standoff, no creeping, no going round: if it wants those it has to learn them.
+			this.rule = 'brain'; this.dogTarget = null; this.routeTarget = null; this.creeping = false;
+			var act = this.brain ? this.brain(this) : null;
+			if (!act) return;
+			var bsp = DOG_SPEED * Math.max(0, Math.min(1, act.speed == null ? 1 : act.speed));
+			var bna = this.rand() * Math.PI * 2;
+			// It can't turn on the spot: the heading swings towards what the network
+			// asked for by at most CONFIG.turnLimit radians a tick. Then the same
+			// noise as the collie.
+			var wantA = Math.atan2(act.hy, act.hx), haveA = Math.atan2(dog.hy, dog.hx);
+			var dA = Math.atan2(Math.sin(wantA - haveA), Math.cos(wantA - haveA));
+			if (CONFIG.turnLimit > 0 && Math.abs(dA) > CONFIG.turnLimit) dA = dA > 0 ? CONFIG.turnLimit : -CONFIG.turnLimit;
+			var newA = haveA + dA;
+			var bx = Math.cos(newA) + E * Math.cos(bna), by = Math.sin(newA) + E * Math.sin(bna), bl = len(bx, by);
+			bx /= bl; by /= bl;
+			// Same manners as the hand-written collie: it may not close in on a sheep
+			// it is already within STOP of. Straight on if that doesn't get closer,
+			// otherwise round the sheep, otherwise stand still.
+			var bNear = Infinity, bNearSheep = null;
+			for (var bi = 0; bi < this.sheep.length; bi++) {
+				var bs = this.sheep[bi];
+				if (bs.penned) continue;
+				var bd = len(bs.x - dog.x, bs.y - dog.y);
+				if (bd < bNear) { bNear = bd; bNearSheep = bs; }
+			}
+			if (bNearSheep && CONFIG.standoff > 0 && bNear <= CONFIG.standoff) {
+				this.creeping = true;
+				bsp *= CONFIG.standoffSlow;
+				var tbx = -(bNearSheep.y - dog.y) / bNear, tby = (bNearSheep.x - dog.x) / bNear;
+				if (tbx * bx + tby * by < 0) { tbx = -tbx; tby = -tby; }
+				var bdirs = [[bx, by], [tbx, tby]], bok = false;
+				for (var bdi = 0; bdi < bdirs.length && !bok; bdi++) {
+					var bbx = dog.x + bdirs[bdi][0] * bsp, bby = dog.y + bdirs[bdi][1] * bsp;
+					if (len(bNearSheep.x - bbx, bNearSheep.y - bby) >= bNear - 1e-6) { bx = bdirs[bdi][0]; by = bdirs[bdi][1]; bok = true; }
+				}
+				if (!bok) { dog.hx = bx; dog.hy = by; return; }
+			}
+			dog.hx = bx; dog.hy = by;
+			var bp = this.move(dog.x, dog.y, dog.x + bx * bsp, dog.y + by * bsp, false);
+			dog.x = bp.x; dog.y = bp.y;
+			return;
+		}
 		if (this.mode === 'manual') {
 			target = this.pointer; this.rule = 'manual'; this.gcm = null;
 		} else {
@@ -585,7 +644,7 @@
 			} else {
 				// Ours creeps up on sheep and stops short of touching them. Once it is
 				// that close it may still back off or go round, but never closes in.
-				var STOP = 4, CREEP = 10;
+				var STOP = STOP_OFF, CREEP = 10;
 				if (nearest <= STOP) {
 					this.creeping = true;
 					speed *= 0.3;
@@ -602,7 +661,7 @@
 				} else if (nearest < CREEP) { speed *= 0.15 + 0.85 * (nearest - STOP) / (CREEP - STOP); this.creeping = true; }
 			}
 		}
-		var noise = this.mode === 'collie' ? E : 0, na = Math.random() * Math.PI * 2;
+		var noise = this.mode === 'collie' ? E : 0, na = this.rand() * Math.PI * 2;
 		var hx = hx0 + noise * Math.cos(na), hy = hy0 + noise * Math.sin(na);
 		var hl = len(hx, hy); hx /= hl; hy /= hl;
 		dog.hx = hx; dog.hy = hy;
@@ -662,12 +721,14 @@
 		ctx.fillText('PEN', TARGET.x * px, (PEN.y1 - 2) * px);
 
 		// Workings
-		if (showWork && sim.mode === 'collie' && sim.state === 'running' && sim.gcm) {
+		if (showWork && (sim.mode === 'collie' || sim.mode === 'brain') && sim.state === 'running' && sim.gcm) {
 			ctx.strokeStyle = COLORS.working; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
 			ctx.beginPath(); ctx.arc(sim.gcm.x * px, sim.gcm.y * px, sim.cohesion * px, 0, Math.PI * 2); ctx.stroke();
 			ctx.setLineDash([]);
 			ctx.fillStyle = COLORS.gcm;
 			ctx.beginPath(); ctx.arc(sim.gcm.x * px, sim.gcm.y * px, Math.max(2, px * 0.7), 0, Math.PI * 2); ctx.fill();
+			// The robot collie has no target to draw, but robot-collie.js can draw its own workings.
+			if (sim.mode === 'brain' && globalThis.__SheepdogOverlay) globalThis.__SheepdogOverlay(ctx, sim, px);
 			var tgt = sim.routeTarget || sim.dogTarget;
 			if (tgt) {
 				ctx.strokeStyle = COLORS.working;
@@ -712,7 +773,7 @@
 			ctx.font = '600 ' + Math.max(16, px * 5) + 'px Rubik, system-ui, sans-serif';
 			ctx.fillText('That’ll do.', w / 2, h / 2 - px * 2);
 			ctx.font = Math.max(12, px * 2.8) + 'px ui-monospace, Menlo, Consolas, monospace';
-			ctx.fillText((sim.mode === 'manual' ? 'You' : 'The collie') + ' penned ' + sim.sheep.length + ' sheep in ' + (sim.ticks / TICKS_PER_SEC).toFixed(1) + 's', w / 2, h / 2 + px * 4);
+			ctx.fillText((sim.dogName || 'The collie') + ' penned ' + sim.sheep.length + ' sheep in ' + (sim.ticks / TICKS_PER_SEC).toFixed(1) + 's', w / 2, h / 2 + px * 4);
 		} else if (sim.state === 'idle' || sim.state === 'armed') {
 			ctx.fillStyle = 'rgba(233,230,221,0.75)'; ctx.textAlign = 'center';
 			ctx.font = Math.max(11, px * 2.6) + 'px ui-monospace, Menlo, Consolas, monospace';
@@ -727,6 +788,7 @@
 		route: 'GO ROUND: something is in the way, aim for its edge',
 		flank: 'FLANK: go round the back of the flock, never across the front',
 		manual: 'MANUAL: you are the dog',
+		brain: 'ROBOT: a neural network is choosing the heading',
 		done: 'DONE: every sheep is in the pen',
 	};
 
@@ -741,33 +803,52 @@
 		var ctx = canvas.getContext('2d');
 		var q = function (sel) { return root.querySelector(sel); };
 		var statusEl = q('[data-role="status"]'), countEl = q('[data-role="count"]'), timeEl = q('[data-role="time"]');
-		var workEl = q('[data-role="work"]'), boardYou = q('[data-role="you"]'), boardDog = q('[data-role="collie"]');
+		var workEl = q('[data-role="work"]');
 		var verdictEl = q('[data-role="verdict"]'), traitsEl = q('[data-role="traits"]');
 		var modeButtons = root.querySelectorAll('[data-mode]');
 
 		var sim = new Sim(levelName);
 		var seed = (Math.random() * 1e9) >>> 0;
 		sim.reset(seed);
-		var board = { you: null, collie: null };
+		// Every [data-mode] button is a competitor. Its name comes from data-name (or its text),
+		// and its time is written to [data-time="<mode>"] if there is one.
+		// A plain "brain" button means the brain named by data-brain (or the level name).
+		var fullMode = function (m) { return m === 'brain' ? 'brain:' + (root.dataset.brain || levelName) : m; };
+		var competitors = {};
+		for (var mb = 0; mb < modeButtons.length; mb++) {
+			var mk = fullMode(modeButtons[mb].dataset.mode);
+			competitors[mk] = { name: modeButtons[mb].dataset.name || modeButtons[mb].textContent.replace(/^Watch (the )?/i, '').trim(), el: root.querySelector('[data-time="' + mk + '"]') || root.querySelector('[data-time="' + modeButtons[mb].dataset.mode + '"]') };
+		}
+		if (!competitors.collie) competitors.collie = { name: 'the collie', el: null };
+		if (!competitors.manual) competitors.manual = { name: 'you', el: null };
+		if (!competitors.collie.el) competitors.collie.el = q('[data-time="collie"]') || q('[data-role="collie"]');
+		if (!competitors.manual.el) competitors.manual.el = q('[data-time="manual"]') || q('[data-role="you"]');
+		var board = {};
 		var px = 1, autostarted = false;
 
 		function renderBoard() {
-			if (boardYou) boardYou.textContent = fmt(board.you);
-			if (boardDog) boardDog.textContent = fmt(board.collie);
+			var ran = [];
+			for (var ck in competitors) {
+				var c = competitors[ck];
+				if (c.el) c.el.textContent = fmt(board[ck]);
+				if (board[ck] != null) ran.push({ k: ck, t: board[ck], name: c.name });
+			}
 			if (verdictEl) {
 				var v;
-				if (board.you == null && board.collie == null) v = 'Run both to compare on this flock.';
-				else if (board.you == null) v = 'Now you try. Same sheep, same field.';
-				else if (board.collie == null) v = 'Now watch the collie on the same flock.';
-				else if (board.you < board.collie) v = 'You beat the dog by ' + (board.collie - board.you).toFixed(1) + 's.';
-				else if (board.you > board.collie) v = 'The dog wins by ' + (board.you - board.collie).toFixed(1) + 's.';
-				else v = 'Dead heat.';
+				ran.sort(function (a, b) { return a.t - b.t; });
+				if (ran.length === 0) v = 'Run them on this flock to compare.';
+				else if (ran.length === 1) v = (ran[0].k === 'manual' ? 'Now watch a dog on the same flock.' : 'Now you try. Same sheep, same field.');
+				else if (ran[0].t === ran[1].t) v = 'Dead heat.';
+				else {
+					var winner = ran[0].k === 'manual' ? 'You win' : ran[0].name.charAt(0).toUpperCase() + ran[0].name.slice(1) + ' wins';
+					v = winner + ' by ' + (ran[1].t - ran[0].t).toFixed(1) + 's over ' + (ran[1].k === 'manual' ? 'you' : ran[1].name) + '.';
+				}
 				verdictEl.textContent = v;
 			}
 			if (traitsEl) {
 				var c = sim.traitCounts;
 				traitsEl.textContent = sim.level.traits
-					? c.leader + ' leader' + (c.leader === 1 ? '' : 's') + ' · ' + c.loner + ' loners · ' + c.stubborn + ' old ewes · ' + c.flighty + ' flighty'
+					? c.leader + ' leader' + (c.leader === 1 ? '' : 's') + ' · ' + c.loner + ' loners · ' + (c.stubborn ? c.stubborn + ' old ewes · ' : '') + c.flighty + ' flighty'
 					: '';
 			}
 		}
@@ -782,13 +863,18 @@
 
 		function setPressed(mode) {
 			for (var i = 0; i < modeButtons.length; i++) {
-				modeButtons[i].setAttribute('aria-pressed', modeButtons[i].dataset.mode === mode ? 'true' : 'false');
+				modeButtons[i].setAttribute('aria-pressed', mode != null && fullMode(modeButtons[i].dataset.mode) === fullMode(mode) ? 'true' : 'false');
 			}
 		}
-		function startMode(mode) { sim.start(mode); setPressed(mode); }
+		function startMode(mode) {
+			mode = fullMode(mode);
+			var c = competitors[mode];
+			sim.start(mode, c && mode !== 'manual' ? c.name.charAt(0).toUpperCase() + c.name.slice(1) : null);
+			setPressed(mode);
+		}
 		function newFlock() {
 			seed = (Math.random() * 1e9) >>> 0;
-			board = { you: null, collie: null };
+			board = {};
 			sim.reset(seed); setPressed(null); renderBoard();
 		}
 
@@ -821,7 +907,8 @@
 		if ('IntersectionObserver' in window) {
 			new IntersectionObserver(function (entries) {
 				visible = entries[0].isIntersecting;
-				if (visible && !autostarted && sim.level.autostart && sim.state === 'idle') { autostarted = true; startMode('collie'); }
+				var auto = root.dataset.autostart || (sim.level.autostart ? 'collie' : null);
+				if (visible && !autostarted && auto && sim.state === 'idle') { autostarted = true; startMode(auto); }
 			}, { threshold: 0.3 }).observe(root);
 		}
 
@@ -831,7 +918,8 @@
 			if (visible) {
 				sim.step();
 				if (sim.state === 'done' && lastState !== 'done') {
-					var t = sim.ticks / TICKS_PER_SEC, key = sim.mode === 'manual' ? 'you' : 'collie';
+					var t = sim.ticks / TICKS_PER_SEC, key = sim.modeKey;
+					if (!competitors[key]) competitors[key] = { name: sim.dogName ? sim.dogName.toLowerCase() : key, el: root.querySelector('[data-time="' + key + '"]') };
 					if (board[key] == null || t < board[key]) board[key] = t;
 					renderBoard();
 				}
@@ -854,14 +942,20 @@
 		root.__api = { start: startMode, newFlock: newFlock, board: function () { return board; } };
 	}
 
-	// Exposed for headless benchmarking (not used by the page itself).
-	window.__SheepdogSim = Sim;
+	// Exposed for headless benchmarking and for robot-collie.js (the learned dog).
+	globalThis.__SheepdogSim = Sim;
+	globalThis.__Sheepdog = {
+		Sim: Sim, draw: draw, LEVELS: LEVELS, mulberry32: mulberry32, len: len, config: CONFIG,
+		W: W, H: H, R_A: R_A, R_S: R_S, PEN: PEN, TARGET: TARGET, DOG_SPEED: DOG_SPEED, SHEEP_SPEED: SHEEP_SPEED, TICKS_PER_SEC: TICKS_PER_SEC,
+	};
 
-	function mountAll() {
-		var roots = document.querySelectorAll('[data-sheepdog]');
-		for (var i = 0; i < roots.length; i++) mount(roots[i]);
+	if (typeof document !== 'undefined') {
+		var mountAll = function () {
+			var roots = document.querySelectorAll('[data-sheepdog]');
+			for (var i = 0; i < roots.length; i++) mount(roots[i]);
+		};
+		if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountAll); else mountAll();
+		document.addEventListener('astro:page-load', mountAll);
 	}
-	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountAll); else mountAll();
-	document.addEventListener('astro:page-load', mountAll);
 
 })();
