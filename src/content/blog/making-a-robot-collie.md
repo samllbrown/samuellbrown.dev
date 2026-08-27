@@ -49,7 +49,7 @@ A dog's score on a flock is sheep penned, plus a bonus for finishing quickly, pl
 
 ## Basic evolution
 
-Thirty-two dogs with random brains, evolved in your browser. Pick how many generations, press Evolve, and it runs them and stops. The field shows the best dog of the latest generation on a fixed flock; the chart is the best score and the batch average, and 1 is every sheep in.
+Thirty-two dogs with random brains (sixteen on a phone, which has to do all of this itself), evolved in your browser. Pick how many generations, press Evolve, and it runs them and stops. The field shows the best dog of the latest generation on a fixed flock; the chart is the best score and the batch average, and 1 is every sheep in.
 
 The first few generations are the good bit. Dogs run in circles, sit in a corner, or push the flock the wrong way. Then one of them gets behind the flock by accident, the score jumps, and the batch fills up with its descendants.
 

@@ -390,6 +390,11 @@
 		var statusEl = q('[data-role="status"]'), genEl = q('[data-role="gen"]'), bestEl = q('[data-role="best"]'), workEl = q('[data-role="work"]');
 		var labelEl = q('[data-role="label"]'), gensEl = q('[data-role="gens"]');
 		var popSize = parseInt(root.dataset.pop || '32', 10), flocks = parseInt(root.dataset.flocks || '2', 10), maxTicks = 2400;
+		// Everything runs on this device. A phone has fewer, slower cores, so give it a
+		// quarter of the work per generation: fewer dogs, one flock, a shorter run.
+		var cores = navigator.hardwareConcurrency || 2;
+		var small = cores <= 4 || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+		if (small) { popSize = Math.min(popSize, 16); flocks = 1; maxTicks = 1800; }
 
 		var evolver = null, running = false, waiting = false, workers = [], pending = {}, nextId = 1, target = 50;
 		var replay = new SD.Sim(level), replayGen = -1, px = 1;
@@ -404,19 +409,24 @@
 				workers.push(w);
 			}
 		}
-		function evalAll(jobs, cb) {
+		// Hand the jobs out in small parcels so progress can be shown as they come back.
+		function evalAll(jobs, cb, onProgress) {
 			ensureWorkers();
-			var chunks = workers.map(function () { return []; });
-			for (var i = 0; i < jobs.length; i++) chunks[i % workers.length].push(jobs[i]);
-			var results = [], left = 0;
-			chunks.forEach(function (c, wi) {
-				if (!c.length) return;
-				left++;
-				var id = nextId++;
-				pending[id] = function (r) { results = results.concat(r); if (--left === 0) cb(results); };
+			var PARCEL = 4, parcels = [];
+			for (var i = 0; i < jobs.length; i += PARCEL) parcels.push(jobs.slice(i, i + PARCEL));
+			var results = [], doneJobs = 0, next = 0;
+			function feed(wi) {
+				if (next >= parcels.length) return;
+				var c = parcels[next++], id = nextId++;
+				pending[id] = function (r) {
+					results = results.concat(r); doneJobs += r.length;
+					if (onProgress) onProgress(doneJobs, jobs.length);
+					if (doneJobs >= jobs.length) cb(results); else feed(wi);
+				};
 				workers[wi].postMessage({ id: id, level: level, maxTicks: maxTicks, jobs: c });
-			});
-			if (left === 0) cb(results);
+			}
+			if (!jobs.length) { cb(results); return; }
+			for (var w = 0; w < workers.length; w++) feed(w);
 		}
 
 		function setStatus(t) { if (statusEl) statusEl.textContent = t; }
@@ -431,7 +441,8 @@
 			if (!running || waiting) return;
 			if (evolver.gen >= target) { running = false; setPressed(); setStatus('that\'s ' + target + ' generations. The best dog is replaying on the field; pick a bigger number and press Evolve to carry on.'); return; }
 			waiting = true;
-			setStatus('generation ' + (evolver.gen + 1) + ' of ' + target + ': trialling ' + evolver.popSize + ' dogs on ' + flocks + ' flocks…');
+			var gLabel = 'generation ' + (evolver.gen + 1) + ' of ' + target + ': trialling ' + evolver.popSize + ' dogs on ' + flocks + (flocks === 1 ? ' flock' : ' flocks');
+			setStatus(gLabel + '…');
 			evalAll(evolver.jobs(), function (results) {
 				waiting = false;
 				if (!evolver) return;
@@ -441,7 +452,7 @@
 				if (e.penned >= replay.sheep.length - 0.01) msg += ', all of them';
 				setStatus(msg + '.');
 				if (running) setTimeout(generation, 30);
-			});
+			}, function (done, total) { setStatus(gLabel + ', ' + done + ' of ' + total + ' runs back'); });
 		}
 
 		function startReplay() {
@@ -495,7 +506,7 @@
 			evolver = new Evolver({ level: level, popSize: popSize, flocksPerGen: flocks, maxTicks: maxTicks, seed: (Math.random() * 1e9) >>> 0 });
 			replay = new SD.Sim(level); replay.reset(7); replayGen = -1;
 			fmtGen(); drawChart();
-			setStatus(popSize + ' dogs with random brains. Pick how many generations and press Evolve.');
+			setStatus(popSize + ' dogs with random brains' + (small ? ' (a smaller batch, because this is a phone)' : '') + '. Pick how many generations and press Evolve.');
 			setPressed();
 		}
 		function setPressed() {
