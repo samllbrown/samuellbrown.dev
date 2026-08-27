@@ -9,7 +9,7 @@ tags:
   - AI
 ---
 
-In [the last post](/blog/the-collie-is-the-algorithm/) I built a sheepdog out of two rules from a paper. This time I wanted to see if a dog could work the rules out for itself. Not the usual way, with a pile of data and gradient descent, because that's not how real collies got good at it. They got good at it by the ones that could do the job having puppies. So I did that, in a simulation.
+In [the last post](/blog/the-collie-is-the-algorithm/) I built a sheepdog out of two rules from a paper. This time I wanted to see if a dog could work the rules out for itself. Not the usual way, with a pile of data and gradient descent: there's no data (nobody has recorded what a perfect sheepdog does), and you can't take a gradient through a flock of sheep. Real collies got good at it by the ones that could do the job having puppies. So I did that, in a simulation.
 
 The dog is a small neural network. It gets told where things are and it says which way to run and how fast. It doesn't know the two rules, it doesn't know what a pen is, and nobody tells it when it's done well. Every generation I run a batch of them, keep the ones that got the most sheep in, mix their brains with a few random changes, and go again.
 
@@ -41,14 +41,6 @@ run(normalise(dx, dy), sigmoid(speed));
 ```
 
 A dog's score on a flock is sheep penned, plus a bonus for finishing quickly, plus a bit for how close the loose ones got, so that early on, when nobody gets any in, the dogs that at least push the flock the right way come out ahead. Every generation gets fresh flocks, the same ones for every dog.
-
-## Why not train it the usual way
-
-- **There are no right answers to show it.** Nobody has a recording of what a perfect sheepdog does at every moment. All you get is one number at the end of a run, forty seconds after the decisions that earned it. You can do gradients with that (it's reinforcement learning) but it takes a lot of machinery.
-- **You can't take a gradient through the sheep.** Walls stop you dead, sheep either spook or don't, and there's noise in every step. None of that has a slope.
-- **The dog is tiny.** Two hundred numbers. Trying variations and keeping the better ones is fine at that size, and it's the search real collies were found by.
-
-It isn't cheap. The open-field dog took about twenty thousand trial runs to find its two hundred numbers, and a gradient method would get there in a fraction of that if it could be made to work. But you can watch it happen.
 
 ## Basic evolution
 
