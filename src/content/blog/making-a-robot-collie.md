@@ -532,7 +532,8 @@ The other thing is that I can read the paper's dog, and I can only measure this 
   .robot-compare-col canvas.robot-field { width: 100%; }
   .robot-compare-title { margin: 0 0 0.4rem; color: var(--gray-0); }
   .robot-compare-controls { margin-top: 0; margin-bottom: 0.8rem; }
-  .robot-compare .robot-bar { grid-template-columns: 5.5em 1fr 3em; font-size: 0.7rem; }
+  .robot-compare .robot-bar { grid-template-columns: 6.8em 1fr 2.8em; font-size: 0.7rem; }
+  .robot-compare .robot-bar span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .robot-thoughts-main { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start; }
   .robot-thoughts-field { flex: 1 1 380px; min-width: 0; }
   .robot-thoughts-panel { flex: 0 1 260px; min-width: 220px; font-family: var(--font-mono); font-size: var(--text-sm); }
