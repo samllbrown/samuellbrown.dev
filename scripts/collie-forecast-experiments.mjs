@@ -532,6 +532,15 @@ function writeCharts(A) {
 		const svg = chart({ title: `How well each early signal predicts the final dog (rank correlation), by the generation you peek at, for ${k}`, series, xmin: 0, xmax: A.gens, ymin: -0.4, ymax: 1, xticks: [0, 30, 60, 90, 120].filter((t) => t <= A.gens), yticks: [0, 0.5, 1], xlabel: 'generation you peek at', ylabel: 'rank correlation with final score', hlines: [{ y: 0 }], xname: 'generation' });
 		writeFileSync(`${OUT}/chart-corr-${k}.html`, svg + legend(use.map(([s, nm, col]) => ({ name: nm, color: col }))));
 	}
+	// F. Picking the best of four: how often the run a signal ranks top ends best of a random four, by peek generation (GA).
+	if (A.opts.ga && A.opts.ga.pick4) {
+		const O = A.opts.ga;
+		const SIGS = [['bestSoFar', 'best score so far', C.a], ['best', 'best score this generation', 'rgba(233,230,221,0.85)'], ['pFit', 'score on probe flocks', C.b], ['pBehind', 'time behind the flock', C.c], ['pProgress', 'flock progress to pen', C.d]];
+		const series = SIGS.filter(([s]) => O.pick4[s]).map(([s, nm, col]) => ({ name: nm, color: col, points: O.gens.map((g, i) => [g, O.pick4[s][i] * 100]) }));
+		series.push({ name: 'guessing', color: 'rgba(233,230,221,0.6)', dash: '4 4', points: [[0, 25], [A.gens, 25]] });
+		const svg = chart({ title: 'How often the run a signal ranks top ends best of a random four, by the generation you peek at', series, xmin: 0, xmax: A.gens, ymin: 0, ymax: 70, xticks: [0, 30, 60, 90, 120].filter((t) => t <= A.gens), yticks: [0, 25, 50], xlabel: 'generation you peek at', ylabel: 'picks the best of four (%)', hlines: [{ y: 50 }], xname: 'generation', yfmt: 'pct' });
+		writeFileSync(`${OUT}/chart-pick4.html`, svg + legend(series.map((se) => ({ name: se.name, color: se.color }))));
+	}
 	log('Charts written.');
 }
 

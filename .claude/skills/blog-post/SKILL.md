@@ -35,8 +35,11 @@ Rules that came from direct feedback, so treat them as hard:
   never for emphasis in prose.
 - **No killing.** Runs and dogs are never killed or culled. Use "rehome", "give up on it", "keep
   or rehome". This came from Sam and applies to code comments and generated chart text too.
-- **Less text than you think.** Sam cut a five-sentence paragraph to two. A paragraph that lists
-  numbers should be a table, tile row or chart instead. Reflections are short.
+- **Text only where it really needs it.** Sam cut a five-sentence paragraph to two, and called four
+  consecutive paragraphs of findings "too much text all in one go, very hard to read". A paragraph
+  that lists numbers should be a table, tile row, chart or card grid instead. The prose that survives
+  is the reasoning a graphic can't carry: why something didn't work, what the best guess is, what
+  changed your mind. Reflections are short.
 - **Numbers stay exact and traceable.** Every figure in the prose must come from the experiment
   script's output, seeded, and match the tables and charts.
 
@@ -83,6 +86,13 @@ Sam's default is "show it, don't list it". Concretely:
   data". Show the curve or the bars, and put the sentence in a caption.
 - **Two shapes of thing** (smooth vs jagged, easy vs hard): side-by-side `.fc-card`s with a small
   sketch svg at the top.
+- **One finding per measured thing** (a signal, a probe, a variant): a grid of small cards
+  (`.fc-signals` of `.fc-signal`), each with a colour swatch matching the main chart, a sparkline of
+  that thing's curve, its value at the generation the post is about, and one plain sentence. This
+  replaced four paragraphs in the puppy post. Build the sparklines from the same JSON the chart uses,
+  and put one transparent `data-tip` rect over each so hovering gives the numbers.
+- **Rule of thumb:** if a paragraph names more than two numbers, or walks through several things one
+  after another, it wants to be a graphic with a sentence under it, not a paragraph.
 
 Every chart gets a tooltip. The experiment script's `chart()` embeds its series in `data-lines` and
 `bars()` puts `data-tip` on each segment; `mountFigures()` in the post's sim JS renders the
@@ -119,6 +129,17 @@ so anything that must stand out uses `--accent-dark`.
   for hovering a bar to confirm the tooltip fires. Look at the screenshots.
 - Regenerate charts and tables from the experiment script, never hand-edit numbers.
 - Scratch data (run JSON, chart HTML) lives in `scratch/<post>/`, untracked.
-- Do not commit. Sam commits posts himself.
+- New charts go in the experiment script (`chart()` or `bars()` in `scripts/*-experiments.mjs`),
+  regenerated with the script's `analyse` command into `scratch/<post>/chart-*.html`, then pasted
+  into the post inside `<figure class="robot-figure" data-chart="name">` with a legend and caption.
+- The dev server sometimes keeps serving a stale render after a large edit to a post. Restart it with
+  `fuser -k 4321/tcp` and start again rather than debugging the markdown.
+- The site is on Astro 7 (Sept 2026): the blog collection uses the glob loader, pages use `entry.id`
+  and `render(entry)`, rehype plugins go inside `unified()` in `astro.config.mjs`, and the search on
+  the blog index is Pagefind's component UI themed through `--pf-*` variables in
+  `src/pages/blog/index.astro`. Any new site chrome must use the site's tokens (`--gray-*`,
+  `--accent-dark`, `--font-body`), Sam notices when something "doesn't fit with the colours".
+- Do not commit unless Sam asks. He has been asking for pushes at the end of each round of edits;
+  push when asked, and push promptly if a change is fixing something visibly broken on the live site.
 - After a rewrite, grep the post for `—`, `kill`, `cull`, and for bullets made of short full-stopped
   sentences, before reporting done.

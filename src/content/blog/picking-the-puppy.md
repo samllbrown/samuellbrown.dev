@@ -139,13 +139,86 @@ The game is four runs at a time. This is the same question over all hundred: at 
 <figcaption>Rank correlation between each signal, read at a given generation, and the run's final exam score, across the 100 evolution runs. 1 would be a perfect early forecast; 0 is no information.</figcaption>
 </figure>
 
-Nothing you can see at generation 15 is worth much. The best signal there is this generation's best score, with a rank correlation of 0.36 with the exam. The best score so far, which is the thing you'd naturally watch, is at 0.18. No signal gets to 0.5 before generation 25, and even at the very end of training the run's own best score only correlates 0.72 with how its dog does on flocks it hasn't seen. The spread of scores across the batch looks like a good signal (0.40 at generation 15) but it's the same signal in disguise: when one dog pens a flock the maximum and the spread jump together, and the two correlate at 0.94, so I've left it off the chart.
+<figure class="robot-figure fc-signals" aria-label="Each signal's rank correlation with the exam by generation, with its value at generation 15 marked.">
+  <div class="fc-signal">
+    <b><i style="background:rgba(233,230,221,0.85)"></i>best score this generation</b>
+    <svg viewBox="0 0 200 56" aria-hidden="true"><line x1="6" x2="194" y1="33.5" y2="33.5" stroke="rgba(255,255,255,0.18)"/><line x1="29.5" x2="29.5" y1="6" y2="50" stroke="rgba(255,255,255,0.18)" stroke-dasharray="2 3"/><path d="M7.6 32.0 L9.1 28.9 L10.7 32.1 L12.3 32.2 L13.8 27.8 L15.4 28.3 L18.5 24.1 L21.7 27.2 L24.8 28.6 L29.5 23.7 L37.3 21.8 L45.2 19.8 L53.0 18.1 L68.7 17.5 L84.3 15.5 L100.0 16.0 L131.3 15.0 L162.7 13.9 L194.0 13.9" fill="none" stroke="rgba(233,230,221,0.85)" stroke-width="2" stroke-linejoin="round"/><circle cx="29.5" cy="23.7" r="3" fill="rgba(233,230,221,0.85)"/><rect x="0" y="0" width="200" height="56" fill="transparent" data-tip="<b>rank correlation with the exam</b><br>gen 5: +0.21 · gen 15: +0.36 · gen 30: +0.56 · gen 50: +0.66 · gen 80: +0.67 · gen 120: +0.71"/></svg>
+    <span class="fc-signal-val">ρ 0.36 at 15, 0.71 at 120</span>
+    <span class="fc-card-sub">The best thing you can see at 15, and it isn't much.</span>
+  </div>
+  <div class="fc-signal">
+    <b><i style="background:#a93fe0"></i>best score so far</b>
+    <svg viewBox="0 0 200 56" aria-hidden="true"><line x1="6" x2="194" y1="33.5" y2="33.5" stroke="rgba(255,255,255,0.18)"/><line x1="29.5" x2="29.5" y1="6" y2="50" stroke="rgba(255,255,255,0.18)" stroke-dasharray="2 3"/><path d="M7.6 32.0 L9.1 29.4 L10.7 30.6 L12.3 31.8 L13.8 31.1 L15.4 31.0 L18.5 28.5 L21.7 30.2 L24.8 30.3 L29.5 28.7 L37.3 27.8 L45.2 25.6 L53.0 23.7 L68.7 21.5 L84.3 18.9 L100.0 17.2 L131.3 15.6 L162.7 13.9 L194.0 13.7" fill="none" stroke="#a93fe0" stroke-width="2" stroke-linejoin="round"/><circle cx="29.5" cy="28.7" r="3" fill="#a93fe0"/><rect x="0" y="0" width="200" height="56" fill="transparent" data-tip="<b>rank correlation with the exam</b><br>gen 5: +0.09 · gen 15: +0.18 · gen 30: +0.36 · gen 50: +0.53 · gen 80: +0.65 · gen 120: +0.72"/></svg>
+    <span class="fc-signal-val">ρ 0.18 at 15, 0.72 at 120</span>
+    <span class="fc-card-sub">The thing you'd naturally watch. Even at the end of training it only agrees 0.72 with the exam.</span>
+  </div>
+  <div class="fc-signal">
+    <b><i style="background:#8490b5"></i>spread of scores in the batch</b>
+    <svg viewBox="0 0 200 56" aria-hidden="true"><line x1="6" x2="194" y1="33.5" y2="33.5" stroke="rgba(255,255,255,0.18)"/><line x1="29.5" x2="29.5" y1="6" y2="50" stroke="rgba(255,255,255,0.18)" stroke-dasharray="2 3"/><path d="M7.6 32.5 L9.1 30.6 L10.7 31.7 L12.3 34.0 L13.8 29.4 L15.4 30.6 L18.5 24.1 L21.7 27.1 L24.8 27.6 L29.5 22.5 L37.3 22.4 L45.2 18.6 L53.0 18.0 L68.7 17.7 L84.3 16.0 L100.0 17.3 L131.3 15.4 L162.7 18.9 L194.0 25.2" fill="none" stroke="#8490b5" stroke-width="2" stroke-linejoin="round"/><circle cx="29.5" cy="22.5" r="3" fill="#8490b5"/><rect x="0" y="0" width="200" height="56" fill="transparent" data-tip="<b>rank correlation with the exam</b><br>gen 5: +0.15 · gen 15: +0.40 · gen 30: +0.56 · gen 50: +0.64 · gen 80: +0.66 · gen 120: +0.30"/></svg>
+    <span class="fc-signal-val">ρ 0.40 at 15, 0.66 at 80</span>
+    <span class="fc-card-sub">Looks good, but it's the maximum in disguise: when one dog pens a flock the two jump together (they correlate at 0.94), so it isn't on the chart.</span>
+  </div>
+  <div class="fc-signal">
+    <b><i style="background:#c97c12"></i>score on the probe flocks</b>
+    <svg viewBox="0 0 200 56" aria-hidden="true"><line x1="6" x2="194" y1="33.5" y2="33.5" stroke="rgba(255,255,255,0.18)"/><line x1="29.5" x2="29.5" y1="6" y2="50" stroke="rgba(255,255,255,0.18)" stroke-dasharray="2 3"/><path d="M7.6 30.9 L9.1 28.7 L10.7 31.4 L12.3 34.7 L13.8 31.0 L15.4 26.0 L18.5 25.5 L21.7 30.3 L24.8 27.0 L29.5 32.4 L37.3 28.6 L45.2 29.4 L53.0 26.1 L68.7 23.2 L84.3 20.5 L100.0 19.0 L131.3 16.4 L162.7 14.9 L194.0 12.0" fill="none" stroke="#c97c12" stroke-width="2" stroke-linejoin="round"/><circle cx="29.5" cy="32.4" r="3" fill="#c97c12"/><rect x="0" y="0" width="200" height="56" fill="transparent" data-tip="<b>rank correlation with the exam</b><br>gen 5: +0.09 · gen 15: +0.04 · gen 30: +0.27 · gen 50: +0.47 · gen 80: +0.62 · gen 120: +0.78"/></svg>
+    <span class="fc-signal-val">ρ 0.04 at 15, 0.78 at 120</span>
+    <span class="fc-card-sub">Near zero at 15, and only catches the score curve at about generation 60.</span>
+  </div>
+  <div class="fc-signal">
+    <b><i style="background:#4f9cf9"></i>flock progress to pen</b>
+    <svg viewBox="0 0 200 56" aria-hidden="true"><line x1="6" x2="194" y1="33.5" y2="33.5" stroke="rgba(255,255,255,0.18)"/><line x1="29.5" x2="29.5" y1="6" y2="50" stroke="rgba(255,255,255,0.18)" stroke-dasharray="2 3"/><path d="M7.6 30.4 L9.1 26.7 L10.7 31.1 L12.3 34.6 L13.8 31.8 L15.4 25.7 L18.5 24.7 L21.7 31.9 L24.8 27.5 L29.5 32.4 L37.3 30.6 L45.2 27.6 L53.0 26.6 L68.7 24.7 L84.3 22.9 L100.0 18.8 L131.3 17.9 L162.7 15.8 L194.0 14.5" fill="none" stroke="#4f9cf9" stroke-width="2" stroke-linejoin="round"/><circle cx="29.5" cy="32.4" r="3" fill="#4f9cf9"/><rect x="0" y="0" width="200" height="56" fill="transparent" data-tip="<b>rank correlation with the exam</b><br>gen 5: +0.06 · gen 15: +0.04 · gen 30: +0.25 · gen 50: +0.38 · gen 80: +0.57 · gen 120: +0.69"/></svg>
+    <span class="fc-signal-val">ρ 0.04 at 15, 0.69 at 120</span>
+    <span class="fc-card-sub">Near zero at 15, catches up at about generation 60.</span>
+  </div>
+  <div class="fc-signal">
+    <b><i style="background:#35a066"></i>time behind the flock</b>
+    <svg viewBox="0 0 200 56" aria-hidden="true"><line x1="6" x2="194" y1="33.5" y2="33.5" stroke="rgba(255,255,255,0.18)"/><line x1="29.5" x2="29.5" y1="6" y2="50" stroke="rgba(255,255,255,0.18)" stroke-dasharray="2 3"/><path d="M7.6 31.1 L9.1 31.3 L10.7 27.9 L12.3 28.3 L13.8 32.5 L15.4 32.1 L18.5 30.4 L21.7 34.9 L24.8 30.6 L29.5 30.8 L37.3 30.6 L45.2 31.9 L53.0 28.3 L68.7 34.3 L84.3 27.8 L100.0 28.9 L131.3 25.3 L162.7 25.9 L194.0 22.1" fill="none" stroke="#35a066" stroke-width="2" stroke-linejoin="round"/><circle cx="29.5" cy="30.8" r="3" fill="#35a066"/><rect x="0" y="0" width="200" height="56" fill="transparent" data-tip="<b>rank correlation with the exam</b><br>gen 5: +0.04 · gen 15: +0.10 · gen 30: +0.19 · gen 50: +0.21 · gen 80: +0.30 · gen 120: +0.41"/></svg>
+    <span class="fc-signal-val">ρ 0.10 at 15, 0.41 at 120</span>
+    <span class="fc-card-sub">Hovers around zero until generation 80.</span>
+  </div>
+  <div class="fc-signal">
+    <b><i style="background:#e05c7a"></i>time close to the sheep</b>
+    <svg viewBox="0 0 200 56" aria-hidden="true"><line x1="6" x2="194" y1="33.5" y2="33.5" stroke="rgba(255,255,255,0.18)"/><line x1="29.5" x2="29.5" y1="6" y2="50" stroke="rgba(255,255,255,0.18)" stroke-dasharray="2 3"/><path d="M7.6 34.3 L9.1 39.7 L10.7 37.8 L12.3 32.5 L13.8 39.9 L15.4 41.1 L18.5 38.6 L21.7 35.5 L24.8 38.8 L29.5 38.7 L37.3 40.0 L45.2 40.5 L53.0 42.2 L68.7 42.7 L84.3 44.4 L100.0 44.3 L131.3 49.5 L162.7 48.6 L194.0 45.9" fill="none" stroke="#e05c7a" stroke-width="2" stroke-linejoin="round"/><circle cx="29.5" cy="38.7" r="3" fill="#e05c7a"/><rect x="0" y="0" width="200" height="56" fill="transparent" data-tip="<b>rank correlation with the exam</b><br>gen 5: -0.23 · gen 15: -0.19 · gen 30: -0.32 · gen 50: -0.40 · gen 80: -0.58 · gen 120: -0.45"/></svg>
+    <span class="fc-signal-val">ρ -0.19 at 15, -0.58 at 80</span>
+    <span class="fc-card-sub">Points the other way: the dogs that end up best press the flock rather than keeping their distance. The strongest behavioural signal late on, and nothing at 15.</span>
+  </div>
+  <div class="fc-signal">
+    <b><i style="background:#c561f6"></i>genome diversity</b>
+    <svg viewBox="0 0 200 56" aria-hidden="true"><line x1="6" x2="194" y1="33.5" y2="33.5" stroke="rgba(255,255,255,0.18)"/><line x1="29.5" x2="29.5" y1="6" y2="50" stroke="rgba(255,255,255,0.18)" stroke-dasharray="2 3"/><path d="M7.6 38.5 L9.1 34.1 L10.7 32.3 L12.3 31.5 L13.8 32.0 L15.4 29.0 L18.5 28.7 L21.7 26.8 L24.8 30.8 L29.5 30.5 L37.3 38.4 L45.2 41.0 L53.0 42.2 L68.7 40.6 L84.3 46.1 L100.0 45.7 L131.3 45.4 L162.7 37.5 L194.0 43.2" fill="none" stroke="#c561f6" stroke-width="2" stroke-linejoin="round"/><circle cx="29.5" cy="30.5" r="3" fill="#c561f6"/><rect x="0" y="0" width="200" height="56" fill="transparent" data-tip="<b>rank correlation with the exam</b><br>gen 5: +0.06 · gen 15: +0.11 · gen 30: -0.32 · gen 50: -0.46 · gen 80: -0.43 · gen 120: -0.35"/></svg>
+    <span class="fc-signal-val">ρ 0.11 at 15, -0.46 at 50</span>
+    <span class="fc-card-sub">Slightly positive early, then negative from 25, because a population that has converged has found something worth converging on. Not a leading signal, but a sign that a jump is real.</span>
+  </div>
+</figure>
 
-The behavioural probes were the ones I wanted to work, and they didn't. Time spent behind the flock hovers around zero until generation 80. How far the champion moves the flock towards the pen, and its score on the three probe flocks, both sit near zero at generation 15 and only catch up with the score curve at around generation 60. My best guess at why is that the score is a statistic of a whole batch of 32 dogs, while the probe watches one dog on three flocks, and early on one dog is flaky. It pens one flock and loses the next. The one behavioural measure I'd have bet against, time spent close to the sheep, turned out to point the other way: the dogs that end up best are the ones pressing the flock, not the polite ones. It's the strongest behavioural signal late on (0.58 at generation 80) and nothing at 15.
+The probes were the ones I wanted to work. My best guess at why they don't is that the score is a statistic of a whole batch of 32 dogs, while a probe watches one dog on three flocks, and early on one dog is flaky: it pens one flock and loses the next.
 
-Genetic diversity is the odd one out. Slightly positive early on, then negative from generation 25 (−0.46 by generation 50), because a population that has converged has found something worth converging on. It's not a leading signal, but it's a good sign that a jump, when it comes, is real.
+The same thing done the way the game does it: draw four runs at random, back the one the signal ranks top, and count how often that turns out to be the best of the four.
 
-Correlations are a bit abstract, so here is the same thing done the way the game does it. Draw four runs at random, back the one the signal ranks top, and count how often that turns out to be the best of the four. Guessing gets 25%. At generation 15 the best signal gets 40%. At generation 120, with the whole training run behind you, the training score still only picks the best of four dogs half the time, because the exam is on flocks none of them trained on.
+<figure class="robot-figure" data-chart="pick4">
+<svg class="robot-svg" viewBox="0 0 640 280" role="img" aria-label="How often the run a signal ranks top ends best of a random four, by the generation you peek at" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="12" data-lines='{"w":640,"h":280,"pad":{"l":44,"r":16,"t":16,"b":40},"xmin":0,"xmax":120,"ymin":0,"ymax":70,"xname":"generation","yfmt":"pct","series":[{"name":"best score so far","color":"#a93fe0","points":[[1,29.6],[2,33.1],[3,33.3],[4,32],[5,31.7],[6,32.8],[8,37.1],[10,33.1],[12,29.9],[15,34.9],[20,37.4],[25,40],[30,41.9],[40,46.1],[50,47.1],[60,46.2],[80,48.2],[100,50.1],[120,50.2]]},{"name":"best score this generation","color":"rgba(233,230,221,0.85)","points":[[1,29.6],[2,36.7],[3,31.3],[4,34.2],[5,35.9],[6,38.4],[8,44.1],[10,34.6],[12,32],[15,39.9],[20,42],[25,42.9],[30,46.8],[40,48.5],[50,49.2],[60,45.9],[80,47.6],[100,47.6],[120,47.5]]},{"name":"score on probe flocks","color":"#c97c12","points":[[1,35.6],[2,35.3],[3,33.7],[4,27.3],[5,34.9],[6,43.2],[8,43.5],[10,36.4],[12,40.6],[15,35.3],[20,30.9],[25,37.1],[30,42.7],[40,47.2],[50,46.4],[60,46.7],[80,53.9],[100,49.4],[120,58.3]]},{"name":"time behind the flock","color":"#35a066","points":[[1,26.5],[2,27.2],[3,30],[4,28.8],[5,27.8],[6,25.2],[8,26.6],[10,18.6],[12,26.5],[15,34.9],[20,27.9],[25,28.4],[30,37.1],[40,27.2],[50,36.3],[60,34.2],[80,36],[100,33.1],[120,37.7]]},{"name":"flock progress to pen","color":"#4f9cf9","points":[[1,34.9],[2,39.5],[3,34.3],[4,30.5],[5,32.5],[6,42],[8,44.6],[10,31.4],[12,36.5],[15,32.1],[20,29],[25,39.2],[30,41.9],[40,46.5],[50,38.9],[60,45.5],[80,52.1],[100,48.7],[120,44.6]]},{"name":"guessing","color":"rgba(233,230,221,0.6)","points":[[0,25],[120,25]]}]}'>
+<title>How often the run a signal ranks top ends best of a random four, by the generation you peek at</title>
+<line x1="44" x2="624" y1="240.0" y2="240.0" stroke="rgba(255,255,255,0.14)"/><text x="36" y="240.0" fill="#8490b5" text-anchor="end" dominant-baseline="middle">0</text>
+<line x1="44" x2="624" y1="160.0" y2="160.0" stroke="rgba(255,255,255,0.14)"/><text x="36" y="160.0" fill="#8490b5" text-anchor="end" dominant-baseline="middle">25</text>
+<line x1="44" x2="624" y1="80.0" y2="80.0" stroke="rgba(255,255,255,0.14)"/><text x="36" y="80.0" fill="#8490b5" text-anchor="end" dominant-baseline="middle">50</text>
+<text x="44.0" y="258" fill="#8490b5" text-anchor="middle">0</text>
+<text x="189.0" y="258" fill="#8490b5" text-anchor="middle">30</text>
+<text x="334.0" y="258" fill="#8490b5" text-anchor="middle">60</text>
+<text x="479.0" y="258" fill="#8490b5" text-anchor="middle">90</text>
+<text x="624.0" y="258" fill="#8490b5" text-anchor="middle">120</text>
+<path d="M44 16 V240 H624" fill="none" stroke="rgba(255,255,255,0.14)"/>
+<line x1="44" x2="624" y1="80.0" y2="80.0" stroke="rgba(255,255,255,0.35)" stroke-dasharray="3 4"/>
+<text x="624" y="274" fill="#8490b5" text-anchor="end">generation you peek at</text>
+<text transform="translate(12 16) rotate(-90)" fill="#8490b5" text-anchor="end">picks the best of four (%)</text>
+<path d="M48.8 145.3 L53.7 134.1 L58.5 133.4 L63.3 137.6 L68.2 138.6 L73.0 135.0 L82.7 121.3 L92.3 134.1 L102.0 144.3 L116.5 128.3 L140.7 120.3 L164.8 112.0 L189.0 105.9 L237.3 92.5 L285.7 89.3 L334.0 92.2 L430.7 85.8 L527.3 79.7 L624.0 79.4" fill="none" stroke="#a93fe0" stroke-width="2" stroke-opacity="1" stroke-linejoin="round"/>
+<path d="M48.8 145.3 L53.7 122.6 L58.5 139.8 L63.3 130.6 L68.2 125.1 L73.0 117.1 L82.7 98.9 L92.3 129.3 L102.0 137.6 L116.5 112.3 L140.7 105.6 L164.8 102.7 L189.0 90.2 L237.3 84.8 L285.7 82.6 L334.0 93.1 L430.7 87.7 L527.3 87.7 L624.0 88.0" fill="none" stroke="rgba(233,230,221,0.85)" stroke-width="2" stroke-opacity="1" stroke-linejoin="round"/>
+<path d="M48.8 126.1 L53.7 127.0 L58.5 132.2 L63.3 152.6 L68.2 128.3 L73.0 101.8 L82.7 100.8 L92.3 123.5 L102.0 110.1 L116.5 127.0 L140.7 141.1 L164.8 121.3 L189.0 103.4 L237.3 89.0 L285.7 91.5 L334.0 90.6 L430.7 67.5 L527.3 81.9 L624.0 53.4" fill="none" stroke="#c97c12" stroke-width="2" stroke-opacity="1" stroke-linejoin="round"/>
+<path d="M48.8 155.2 L53.7 153.0 L58.5 144.0 L63.3 147.8 L68.2 151.0 L73.0 159.4 L82.7 154.9 L92.3 180.5 L102.0 155.2 L116.5 128.3 L140.7 150.7 L164.8 149.1 L189.0 121.3 L237.3 153.0 L285.7 123.8 L334.0 130.6 L430.7 124.8 L527.3 134.1 L624.0 119.4" fill="none" stroke="#35a066" stroke-width="2" stroke-opacity="1" stroke-linejoin="round"/>
+<path d="M48.8 128.3 L53.7 113.6 L58.5 130.2 L63.3 142.4 L68.2 136.0 L73.0 105.6 L82.7 97.3 L92.3 139.5 L102.0 123.2 L116.5 137.3 L140.7 147.2 L164.8 114.6 L189.0 105.9 L237.3 91.2 L285.7 115.5 L334.0 94.4 L430.7 73.3 L527.3 84.2 L624.0 97.3" fill="none" stroke="#4f9cf9" stroke-width="2" stroke-opacity="1" stroke-linejoin="round"/>
+<path d="M44.0 160.0 L624.0 160.0" fill="none" stroke="rgba(233,230,221,0.6)" stroke-width="2" stroke-opacity="1" stroke-dasharray="4 4" stroke-linejoin="round"/>
+</svg>
+<div class="robot-legend"><span><i style="background:#a93fe0"></i>best score so far</span><span><i style="background:rgba(233,230,221,0.85)"></i>best score this generation</span><span><i style="background:#c97c12"></i>score on probe flocks</span><span><i style="background:#35a066"></i>time behind the flock</span><span><i style="background:#4f9cf9"></i>flock progress to pen</span><span><i style="background:rgba(233,230,221,0.6)"></i>guessing</span></div>
+<figcaption>How often the run a signal ranks top ends best of a random four, across the 100 evolution runs. Guessing gets 25%. At generation 15 the best signal gets 40%, and even at 120 the training score only picks the best dog half the time, because the exam is on flocks none of them trained on.</figcaption>
+</figure>
 
 <details class="demo-box">
 <summary><span class="demo-title">Picking the best of four</span><span class="demo-desc">How often the run a signal ranks top at that generation ends best of a random four. Guessing gets 25%.</span><span class="demo-open">open</span></summary>
@@ -416,6 +489,15 @@ Hover a bar for the numbers behind it.
   .fc-step-tally { border-style: dashed; }
   .fc-step-tally b { color: var(--gray-0); }
   @media (max-width: 640px) { .fc-step:not(:last-child)::after { content: none; } .fc-flow-5 .fc-step-tally { grid-column: 1 / -1; } }
+  .fc-signals { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; margin: 1.25rem 0; }
+  @media (max-width: 860px) { .fc-signals { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .fc-signals { grid-template-columns: minmax(0, 1fr); } }
+  .fc-signal { border: 1px solid var(--gray-800); border-radius: 0.75rem; padding: 0.8rem 0.9rem; background: var(--gray-999_40); display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
+  .fc-signal > b { font-family: var(--font-mono); font-size: var(--text-sm); font-weight: 500; color: var(--gray-0); display: flex; align-items: center; gap: 0.4rem; }
+  .fc-signal > b i { display: inline-block; width: 12px; height: 3px; border-radius: 2px; flex: none; }
+  .fc-signal svg { display: block; width: 100%; height: auto; }
+  .robot-figure.fc-signals .fc-signal rect[data-tip].fc-hot { stroke: none; }
+  .fc-signal-val { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--gray-300); }
   .fc-takeaways { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin: 1.25rem 0 0; }
   @media (max-width: 860px) { .fc-takeaways { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 560px) { .fc-takeaways { grid-template-columns: minmax(0, 1fr); } }
