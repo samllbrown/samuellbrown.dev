@@ -1,0 +1,134 @@
+---
+// Cookie notice for Google Analytics. Shown until the visitor picks; the choice
+// lives in localStorage and is applied by the consent script in MainHead.
+---
+
+<aside class="cookie-notice" data-cookie-notice hidden aria-label="Cookies">
+	<svg class="cookie-icon" viewBox="0 0 48 48" aria-hidden="true">
+		<path
+			d="M24 4a20 20 0 1 0 20 20 6 6 0 0 1-7-6 6 6 0 0 1-6-7 6 6 0 0 1-7-7z"
+			fill="#c98a3a"
+			stroke="#8a5a22"
+			stroke-width="2"
+			stroke-linejoin="round"
+		/>
+		<circle cx="16" cy="18" r="2.4" fill="#4a2a10" />
+		<circle cx="27" cy="30" r="2.4" fill="#4a2a10" />
+		<circle cx="15" cy="30" r="1.8" fill="#4a2a10" />
+		<circle cx="24" cy="21" r="1.6" fill="#4a2a10" />
+		<circle cx="34" cy="35" r="1.8" fill="#4a2a10" />
+	</svg>
+	<div class="cookie-text">
+		<b>A cookie for the collie?</b>
+		<span>I use Google Analytics to count visits, which sets a couple of cookies. Nothing else, no ads.</span>
+	</div>
+	<div class="cookie-actions">
+		<button type="button" class="cookie-yes" data-cookie-choice="granted">Fine by me</button>
+		<button type="button" class="cookie-no" data-cookie-choice="denied">No thanks</button>
+	</div>
+</aside>
+
+<style>
+	.cookie-notice {
+		position: fixed;
+		z-index: 60;
+		inset-inline: 1rem;
+		bottom: 1rem;
+		margin-inline: auto;
+		max-width: 34rem;
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 0.5rem 1rem;
+		align-items: center;
+		padding: 1rem 1.15rem;
+		border: 1px solid var(--gray-800);
+		border-radius: 1rem;
+		background: var(--gray-999);
+		box-shadow: var(--shadow-md);
+		color: var(--gray-200);
+		font-size: var(--text-sm);
+		animation: cookie-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+	}
+
+	.cookie-notice[hidden] {
+		display: none;
+	}
+
+	.cookie-notice.is-leaving {
+		animation: cookie-out 0.3s ease-in both;
+	}
+
+	.cookie-icon {
+		width: 2.6rem;
+		height: 2.6rem;
+		grid-row: span 2;
+		animation: cookie-wobble 2.4s ease-in-out 0.6s infinite;
+		transform-origin: 50% 60%;
+	}
+
+	.cookie-text {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+		line-height: 1.45;
+	}
+
+	.cookie-text b {
+		font-family: var(--font-brand);
+		font-weight: 600;
+		color: var(--gray-0);
+		font-size: var(--text-md);
+	}
+
+	.cookie-actions {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.cookie-actions button {
+		font: inherit;
+		padding: 0.4rem 0.95rem;
+		border-radius: 999px;
+		cursor: pointer;
+		border: 1px solid var(--gray-700);
+		background: var(--gray-900);
+		color: var(--gray-200);
+		transition: border-color 0.15s, background 0.15s;
+	}
+
+	.cookie-actions button:hover {
+		border-color: var(--gray-500);
+	}
+
+	.cookie-yes {
+		background: var(--accent-regular) !important;
+		border-color: var(--accent-regular) !important;
+		color: var(--accent-text-over) !important;
+	}
+
+	.cookie-yes:hover {
+		background: var(--accent-dark) !important;
+		border-color: var(--accent-dark) !important;
+	}
+
+	@keyframes cookie-in {
+		from { transform: translateY(1.5rem) scale(0.96); opacity: 0; }
+		to { transform: none; opacity: 1; }
+	}
+
+	@keyframes cookie-out {
+		to { transform: translateY(1rem) scale(0.96); opacity: 0; }
+	}
+
+	@keyframes cookie-wobble {
+		0%, 70%, 100% { transform: rotate(0); }
+		78% { transform: rotate(-10deg); }
+		86% { transform: rotate(8deg); }
+		94% { transform: rotate(-4deg); }
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.cookie-notice, .cookie-icon, .cookie-notice.is-leaving { animation: none; }
+	}
+</style>

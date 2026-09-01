@@ -48,3 +48,33 @@ const socialImageURL = new URL(image, Astro.site);
 />
 <meta name="color-scheme" content="dark" />
 <ClientRouter />
+
+<!-- Google Analytics, behind the cookie notice. Consent defaults to denied (cookieless pings only)
+     until the visitor says yes. Page views are sent by hand on astro:page-load so client-side
+     navigations count too. -->
+<script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-1Y4EE2DNCW"></script>
+<script is:inline>
+	window.dataLayer = window.dataLayer || [];
+	function gtag() { dataLayer.push(arguments); }
+	var consentKey = 'cookie-consent';
+	function readConsent() { try { return localStorage.getItem(consentKey); } catch (e) { return null; } }
+	gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied' });
+	if (readConsent() === 'granted') gtag('consent', 'update', { analytics_storage: 'granted' });
+	gtag('js', new Date());
+	gtag('config', 'G-1Y4EE2DNCW', { send_page_view: false });
+	document.addEventListener('astro:page-load', function () {
+		gtag('event', 'page_view', { page_location: location.href, page_title: document.title });
+		var notice = document.querySelector('[data-cookie-notice]');
+		if (!notice || readConsent()) return;
+		notice.hidden = false;
+		notice.querySelectorAll('[data-cookie-choice]').forEach(function (btn) {
+			btn.addEventListener('click', function () {
+				var choice = btn.dataset.cookieChoice;
+				try { localStorage.setItem(consentKey, choice); } catch (e) {}
+				if (choice === 'granted') gtag('consent', 'update', { analytics_storage: 'granted' });
+				notice.classList.add('is-leaving');
+				setTimeout(function () { notice.hidden = true; }, 300);
+			});
+		});
+	});
+</script>
