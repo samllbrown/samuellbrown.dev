@@ -22,7 +22,7 @@ export async function getStaticPaths() {
 			props: { title: 'Samuel Brown', subtitle: 'A software development blog' },
 		},
 		...posts.map((post) => ({
-			params: { slug: post.slug },
+			params: { slug: post.id },
 			props: { title: post.data.title, subtitle: formatDate(post.data.publishDate) },
 		})),
 	];

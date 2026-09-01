@@ -8,13 +8,13 @@ interface Props {
 	post: CollectionEntry<'blog'>;
 }
 
-const { data, slug, body } = Astro.props.post;
+const { data, id, body } = Astro.props.post;
 ---
 
-<a class="card" href={`/blog/${slug}/`}>
+<a class="card" href={`/blog/${id}/`}>
 	<span class="meta">
 		<time datetime={data.publishDate.toISOString()}>{formatDate(data.publishDate)}</time>
-		&middot; {readingTime(body)}
+		&middot; {readingTime(body ?? '')}
 	</span>
 	<span class="title">{data.title}</span>
 	<p class="description">{data.description}</p>

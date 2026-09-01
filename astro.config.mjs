@@ -2,6 +2,7 @@ import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import expressiveCode from 'astro-expressive-code';
 import pagefind from 'astro-pagefind';
+import { rehypeHeadingIds, unified } from '@astrojs/markdown-remark';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 
 // https://astro.build/config
@@ -19,15 +20,18 @@ export default defineConfig({
 		pagefind(),
 	],
 	markdown: {
-		rehypePlugins: [
-			[
-				rehypeAutolinkHeadings,
-				{
-					behavior: 'append',
-					properties: { className: ['anchor-link'], ariaHidden: 'true', tabIndex: -1 },
-					content: { type: 'text', value: ' #' },
-				},
+		processor: unified({
+			rehypePlugins: [
+				rehypeHeadingIds,
+				[
+					rehypeAutolinkHeadings,
+					{
+						behavior: 'append',
+						properties: { className: ['anchor-link'], ariaHidden: 'true', tabIndex: -1 },
+						content: { type: 'text', value: ' #' },
+					},
+				],
 			],
-		],
+		}),
 	},
 });
