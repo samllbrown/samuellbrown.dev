@@ -141,10 +141,12 @@ const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 			const a = links.find((l) => l.dataset.slug === current);
 			if (a && marker) {
 				const nav = toc.querySelector<HTMLElement>('.toc-nav')!;
-				marker.style.top = `${a.offsetTop - nav.offsetTop + nav.scrollTop}px`;
+				// .toc-nav is positioned, so a.offsetTop is already relative to it, and an
+				// absolutely positioned marker scrolls with the nav's content.
+				const top = a.offsetTop;
+				marker.style.top = `${top}px`;
 				marker.style.height = `${a.offsetHeight}px`;
 				marker.style.opacity = '1';
-				const top = a.offsetTop - nav.offsetTop;
 				if (top < nav.scrollTop || top > nav.scrollTop + nav.clientHeight - a.offsetHeight) nav.scrollTo({ top: top - nav.clientHeight / 2, behavior: 'smooth' });
 			}
 		};
@@ -184,7 +186,8 @@ const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 			/* fixed rather than sticky: an overflow rule further up the page defeats sticky */
 			display: block;
 			position: fixed;
-			top: 6rem;
+			top: 50%;
+			transform: translateY(-50%);
 			left: calc(50% + 25rem);
 			width: 11rem;
 			font-size: var(--text-sm);
@@ -215,9 +218,11 @@ const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 	}
 
 	.toc-nav {
+		/* The border lives on the list, not here: this is a scroll container, and a
+		   scroll container clips absolute children to its padding box, so a marker
+		   sitting over a border on this element would never show. */
 		position: relative;
-		border-left: 2px solid var(--gray-800);
-		max-height: calc(100dvh - 9rem);
+		max-height: calc(100dvh - 8rem);
 		overflow-y: auto;
 		scrollbar-width: none;
 		mask-image: linear-gradient(to bottom, transparent, #000 1rem, #000 calc(100% - 1rem), transparent);
@@ -229,7 +234,7 @@ const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 
 	.toc-marker {
 		position: absolute;
-		left: -2px;
+		left: 0;
 		top: 0;
 		width: 2px;
 		height: 0;
@@ -243,6 +248,7 @@ const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 		list-style: none;
 		margin: 0;
 		padding: 0.5rem 0;
+		border-left: 2px solid var(--gray-800);
 	}
 
 	.toc li {
