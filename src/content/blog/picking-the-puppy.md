@@ -9,7 +9,7 @@ tags:
   - AI
 ---
 
-Can you tell, early in a training run, whether it's going to come good? In [the last post](/blog/making-a-robot-collie/) I evolved a sheepdog three times with different random seeds. One run had a dog penning whole flocks by generation 2, one by 17, and one not until generation 114. Had I only run the third, at generation 50 I'd have been staring at a flat line, deciding whether to kill it. Another run costs me a minute of laptop, but for a lab that has burned millions it's a serious question. So: lots of runs, watched early, to see whether generation 15 can predict generation 120.
+Can you tell, early in a training run, whether it's going to come good? In [the last post](/blog/making-a-robot-collie/) I evolved a sheepdog three times with different random seeds. One run had a dog penning whole flocks by generation 2, one by 17, and one not until generation 114. Had I only run the third, at generation 50 I'd have been staring at a flat line, deciding whether to give up on it and rehome it. Another run costs me a minute of laptop, but for a lab that has burned millions it's a serious question. So: lots of runs, watched early, to see whether generation 15 can predict generation 120.
 
 ## The setup
 
@@ -164,15 +164,15 @@ Correlations are a bit abstract, so here is the same thing done the way the game
 </div>
 </details>
 
-## Keep or kill
+## Keep or rehome
 
-Prediction is only worth anything if it changes what you do with your compute. The practical version, which Hyperband and successive halving built an industry on, is triage: start more runs than you can afford to finish, kill the unpromising ones early, and give the survivors the budget. At the same total compute, is that better than running fewer to the finish?
+Prediction is only worth anything if it changes what you do with your compute. The practical version, which Hyperband and successive halving built an industry on, is triage: start more runs than you can afford to finish, rehome the unpromising ones early, and give the ones you keep the budget. At the same total compute, is that better than running fewer to the finish?
 
-The sums: the budget is four full runs. Triage starts eight, culls at some generation down to however many the leftover budget can carry to the end (three up to generation 20, two up to 40, one at 50, never over budget), and keeps the ones with the best score so far. Both policies hand over their best dog. This is how often triage wins, over a few thousand draws from the real runs:
+The sums: the budget is four full runs. Triage starts eight, rehomes at some generation down to however many the leftover budget can carry to the end (three up to generation 20, two up to 40, one at 50, never over budget), and keeps the ones with the best score so far. Both policies hand over their best dog. This is how often triage wins, over a few thousand draws from the real runs:
 
 <figure class="robot-figure" data-chart="cull">
-<svg class="robot-svg" viewBox="0 0 640 280" role="img" aria-label="How often triage by the score so far beats four full runs at the same compute, by the generation you cull at" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="12" data-lines='{"w":640,"h":280,"pad":{"l":44,"r":16,"t":16,"b":40},"xmin":0,"xmax":50,"ymin":0,"ymax":100,"xname":"cull at generation","yfmt":"pct","series":[{"name":"evolution","color":"#a93fe0","points":[[1,43.9],[2,47.3],[3,47.2],[4,47.7],[5,46.6],[6,47.9],[8,53.2],[10,50.1],[12,44.6],[15,48.4],[20,50.2],[25,44.5],[30,48.6],[40,50.8],[50,34.4]]},{"name":"hill climbing","color":"#c97c12","points":[[1,50.9],[2,57.1],[3,55],[4,52.1],[5,58.9],[6,59.4],[8,57.6],[10,56.3],[12,51.5],[15,51.4],[20,51.7],[25,42.5],[30,44.9],[40,50.3],[50,32.8]]},{"name":"evolution strategy","color":"#35a066","points":[[1,59.8],[2,63.7],[3,64.1],[4,63],[5,63.7],[6,64],[8,63.8],[10,63.8],[12,65.9],[15,66.5],[20,65.7],[25,60.5],[30,59.9],[40,65],[50,56.8]]},{"name":"cull at random","color":"rgba(233,230,221,0.6)","points":[[1,41.8],[2,40.5],[3,40.7],[4,41.2],[5,40.9],[6,41],[8,40.5],[10,41.2],[12,42.2],[15,40.4],[20,40.9],[25,29.2],[30,29.1],[40,29.6],[50,16.9]]}]}'>
-<title>How often triage by the score so far beats four full runs at the same compute, by the generation you cull at</title>
+<svg class="robot-svg" viewBox="0 0 640 280" role="img" aria-label="How often triage by the score so far beats four full runs at the same compute, by the generation you rehome at" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="12" data-lines='{"w":640,"h":280,"pad":{"l":44,"r":16,"t":16,"b":40},"xmin":0,"xmax":50,"ymin":0,"ymax":100,"xname":"rehome at generation","yfmt":"pct","series":[{"name":"evolution","color":"#a93fe0","points":[[1,43.9],[2,47.3],[3,47.2],[4,47.7],[5,46.6],[6,47.9],[8,53.2],[10,50.1],[12,44.6],[15,48.4],[20,50.2],[25,44.5],[30,48.6],[40,50.8],[50,34.4]]},{"name":"hill climbing","color":"#c97c12","points":[[1,50.9],[2,57.1],[3,55],[4,52.1],[5,58.9],[6,59.4],[8,57.6],[10,56.3],[12,51.5],[15,51.4],[20,51.7],[25,42.5],[30,44.9],[40,50.3],[50,32.8]]},{"name":"evolution strategy","color":"#35a066","points":[[1,59.8],[2,63.7],[3,64.1],[4,63],[5,63.7],[6,64],[8,63.8],[10,63.8],[12,65.9],[15,66.5],[20,65.7],[25,60.5],[30,59.9],[40,65],[50,56.8]]},{"name":"rehome at random","color":"rgba(233,230,221,0.6)","points":[[1,41.8],[2,40.5],[3,40.7],[4,41.2],[5,40.9],[6,41],[8,40.5],[10,41.2],[12,42.2],[15,40.4],[20,40.9],[25,29.2],[30,29.1],[40,29.6],[50,16.9]]}]}'>
+<title>How often triage by the score so far beats four full runs at the same compute, by the generation you rehome at</title>
 <line x1="44" x2="624" y1="240.0" y2="240.0" stroke="rgba(255,255,255,0.14)"/><text x="36" y="240.0" fill="#8490b5" text-anchor="end" dominant-baseline="middle">0</text>
 <line x1="44" x2="624" y1="184.0" y2="184.0" stroke="rgba(255,255,255,0.14)"/><text x="36" y="184.0" fill="#8490b5" text-anchor="end" dominant-baseline="middle">25</text>
 <line x1="44" x2="624" y1="128.0" y2="128.0" stroke="rgba(255,255,255,0.14)"/><text x="36" y="128.0" fill="#8490b5" text-anchor="end" dominant-baseline="middle">50</text>
@@ -186,25 +186,25 @@ The sums: the budget is four full runs. Triage starts eight, culls at some gener
 <text x="624.0" y="258" fill="#8490b5" text-anchor="middle">50</text>
 <path d="M44 16 V240 H624" fill="none" stroke="rgba(255,255,255,0.14)"/>
 <line x1="44" x2="624" y1="128.0" y2="128.0" stroke="rgba(255,255,255,0.35)" stroke-dasharray="3 4"/>
-<text x="624" y="274" fill="#8490b5" text-anchor="end">generation you cull at</text>
+<text x="624" y="274" fill="#8490b5" text-anchor="end">generation you rehome at</text>
 <text transform="translate(12 16) rotate(-90)" fill="#8490b5" text-anchor="end">triage wins (%)</text>
 <path d="M55.6 141.7 L67.2 134.0 L78.8 134.3 L90.4 133.2 L102.0 135.6 L113.6 132.7 L136.8 120.8 L160.0 127.8 L183.2 140.1 L218.0 131.6 L276.0 127.6 L334.0 140.3 L392.0 131.1 L508.0 126.2 L624.0 162.9" fill="none" stroke="#a93fe0" stroke-width="2" stroke-opacity="1" stroke-linejoin="round"/>
 <path d="M55.6 126.0 L67.2 112.1 L78.8 116.8 L90.4 123.3 L102.0 108.1 L113.6 106.9 L136.8 111.0 L160.0 113.9 L183.2 124.6 L218.0 124.9 L276.0 124.2 L334.0 144.8 L392.0 139.4 L508.0 127.3 L624.0 166.5" fill="none" stroke="#c97c12" stroke-width="2" stroke-opacity="1" stroke-linejoin="round"/>
 <path d="M55.6 106.0 L67.2 97.3 L78.8 96.4 L90.4 98.9 L102.0 97.3 L113.6 96.6 L136.8 97.1 L160.0 97.1 L183.2 92.4 L218.0 91.0 L276.0 92.8 L334.0 104.5 L392.0 105.8 L508.0 94.4 L624.0 112.8" fill="none" stroke="#35a066" stroke-width="2" stroke-opacity="1" stroke-linejoin="round"/>
 <path d="M55.6 146.4 L67.2 149.3 L78.8 148.8 L90.4 147.7 L102.0 148.4 L113.6 148.2 L136.8 149.3 L160.0 147.7 L183.2 145.5 L218.0 149.5 L276.0 148.4 L334.0 174.6 L392.0 174.8 L508.0 173.7 L624.0 202.1" fill="none" stroke="rgba(233,230,221,0.6)" stroke-width="2" stroke-opacity="1" stroke-dasharray="4 4" stroke-linejoin="round"/>
 </svg>
-<div class="robot-legend"><span><i style="background:#a93fe0"></i>evolution</span><span><i style="background:#c97c12"></i>hill climbing</span><span><i style="background:#35a066"></i>evolution strategy</span><span><i style="background:rgba(233,230,221,0.6)"></i>cull at random</span></div>
-<figcaption>How often the triaged litter's best dog beats the best of four full runs, by the generation you cull at, keeping the runs with the best score so far. The dashed line culls at random. 50% is a draw.</figcaption>
+<div class="robot-legend"><span><i style="background:#a93fe0"></i>evolution</span><span><i style="background:#c97c12"></i>hill climbing</span><span><i style="background:#35a066"></i>evolution strategy</span><span><i style="background:rgba(233,230,221,0.6)"></i>rehome at random</span></div>
+<figcaption>How often the triaged litter's best dog beats the best of four full runs, by the generation you rehome at, keeping the runs with the best score so far. The dashed line rehomes at random. 50% is a draw.</figcaption>
 </figure>
 
-On the evolution runs it doesn't pay: about 50% at every generation, a draw. Culling at random gets 40%, which is the price of finishing three runs instead of four. The reason is the base rate. 39 of the 100 runs end with a dog that pens everything, so the best of four random runs already averages 1.99 out of a possible 2.04, and there's nothing for triage to buy except the 10 to 20% of compute it doesn't spend. The other two lotteries have more blanks in them, and there triage pays: 59% for hill climbing at generation 5, and two times in three for the evolution strategy at generation 15, because half of its runs never get off the floor and by then the score knows which half. Culling by what the dog does rather than what it scores never beats culling by score where triage pays, and for hill climbing it's worse than random.
+On the evolution runs it doesn't pay: about 50% at every generation, a draw. Rehoming at random gets 40%, which is the price of finishing three runs instead of four. The reason is the base rate. 39 of the 100 runs end with a dog that pens everything, so the best of four random runs already averages 1.99 out of a possible 2.04, and there's nothing for triage to buy except the 10 to 20% of compute it doesn't spend. The other two lotteries have more blanks in them, and there triage pays: 59% for hill climbing at generation 5, and two times in three for the evolution strategy at generation 15, because half of its runs never get off the floor and by then the score knows which half. Rehoming by what the dog does rather than what it scores never beats rehoming by score where triage pays, and for hill climbing it's worse than random.
 
 <details class="demo-box">
-<summary><span class="demo-title">Culling by other signals</span><span class="demo-desc">How often triage at generation 15 beats four full runs, by the signal you cull on.</span><span class="demo-open">open</span></summary>
+<summary><span class="demo-title">Rehoming by other signals</span><span class="demo-desc">How often triage at generation 15 beats four full runs, by the signal you rehome on.</span><span class="demo-open">open</span></summary>
 <div class="demo-box-body">
 <!-- TABLE:cull -->
 <div class="robot-table-wrap"><table class="robot-table">
-<thead><tr><th>cull at generation 15 by…</th><th class="num">score so far</th><th class="num">score this generation</th><th class="num">probe score</th><th class="num">time behind flock</th><th class="num">flock progress</th><th class="num">random</th></tr></thead>
+<thead><tr><th>rehome at generation 15 by…</th><th class="num">score so far</th><th class="num">score this generation</th><th class="num">probe score</th><th class="num">time behind flock</th><th class="num">flock progress</th><th class="num">random</th></tr></thead>
 <tbody>
 <tr><td>evolution</td><td class="num">48%</td><td class="num">54%</td><td class="num">52%</td><td class="num">52%</td><td class="num">49%</td><td class="num">40%</td></tr>
 <tr><td>hill climbing</td><td class="num">51%</td><td class="num">53%</td><td class="num">41%</td><td class="num">37%</td><td class="num">38%</td><td class="num">41%</td></tr>
@@ -264,7 +264,7 @@ Scale the field up and the question doesn't change, but the stakes do. There are
     <span class="fc-card-sub">Big models on next-token prediction. My evolution strategy is the toy version.</span>
     <ul>
       <li>Loss follows scaling laws so reliable that labs fit them on small runs and predict a model a hundred times bigger to within a percent. That's how the size of Llama 3 was chosen.</li>
-      <li>Extrapolating the curve is a science: Bayesian fits, transformers trained to read learning curves, and Hyperband to industrialise keep-or-kill.</li>
+      <li>Extrapolating the curve is a science: Bayesian fits, transformers trained to read learning curves, and Hyperband to industrialise keep-or-rehome.</li>
     </ul>
   </div>
   <div class="fc-card">
@@ -282,12 +282,100 @@ I expected the transferable idea to be that what a model does carries earlier si
 
 ## What I took from it
 
-- At an eighth of the budget you can't pick the puppy. The best signal at generation 15 has a rank correlation of 0.36 with the exam, and picks the best of four runs 40% of the time against 25% for guessing.
-- Compare runs on the same test at the same time, not on their peaks. That one change took the score-watcher from 47% to 69% in the game. A best-ever score is often just an easy flock.
-- Behaviour didn't beat the score. I wanted it to. The probes watched one dog on three flocks against a score that sums a batch of 32, and early dogs are flaky, so I don't think it's the last word, but it's what this data says.
-- Triage pays when the lottery has blanks. With evolution, where four runs in ten come good, culling early gives you back some compute but not a better dog. With the evolution strategy, where half the runs never start, culling at generation 15 wins two times in three.
-- The optimizer you can forecast is the one that fails most. The evolution strategy is the most predictable and has the most duds. Evolution is the least predictable and has the most winners.
-- Even a finished run is a bit of a lottery. The final training score and the exam on unseen flocks only agree at 0.72 for evolution, so some of the unpredictability is the exam, not the training.
+Hover a bar for the numbers behind it.
+
+<figure class="robot-figure fc-takeaways">
+  <div class="fc-take">
+    <b>40%</b>
+    <span class="fc-card-sub">How often the best signal at generation 15, an eighth of the budget, picks the best of four runs. Guessing gets 25%, so you can't really pick the puppy that early.</span>
+    <svg viewBox="0 0 200 58" role="img" aria-label="At generation 15 the best signal picks the best of four runs 40% of the time, against 25% for guessing and 49% at generation 50.">
+    <text x="72" y="12.5" fill="#8490b5" font-size="8.5" text-anchor="end">guessing</text>
+    <rect x="78" y="3" width="29.5" height="12" rx="2" fill="#4c5470" data-tip="<b>guessing</b><br>picks the best of four 25% of the time"/>
+    <text x="111.5" y="12.5" fill="#e9e6dd" font-size="8.5">25%</text>
+    <text x="72" y="30.5" fill="#8490b5" font-size="8.5" text-anchor="end">generation 15</text>
+    <rect x="78" y="21" width="47.2" height="12" rx="2" fill="#c561f6" data-tip="<b>best score this generation, read at 15</b><br>picks the best of four 40% of the time, rank correlation 0.36 with the exam"/>
+    <text x="129.2" y="30.5" fill="#e9e6dd" font-size="8.5">40%</text>
+    <text x="72" y="48.5" fill="#8490b5" font-size="8.5" text-anchor="end">generation 50</text>
+    <rect x="78" y="39" width="57.8" height="12" rx="2" fill="#4c5470" data-tip="<b>same signal, read at 50</b><br>49%, and still under half at the finish"/>
+    <text x="139.8" y="48.5" fill="#e9e6dd" font-size="8.5">49%</text>
+    </svg>
+  </div>
+  <div class="fc-take">
+    <b>69%</b>
+    <span class="fc-card-sub">The score-watcher in the game once it compared runs on the same test at the same time rather than on their best-ever scores, which are often just an easy flock.</span>
+    <svg viewBox="0 0 200 40" role="img" aria-label="Comparing runs on the same test at the same time took the score-watcher from 47% to 69%.">
+    <text x="72" y="12.5" fill="#8490b5" font-size="8.5" text-anchor="end">best ever</text>
+    <rect x="78" y="3" width="55.5" height="12" rx="2" fill="#4c5470" data-tip="<b>compare best-ever scores</b><br>right 47% of the time"/>
+    <text x="137.5" y="12.5" fill="#e9e6dd" font-size="8.5">47%</text>
+    <text x="72" y="30.5" fill="#8490b5" font-size="8.5" text-anchor="end">same test</text>
+    <rect x="78" y="21" width="81.4" height="12" rx="2" fill="#c561f6" data-tip="<b>compare on the same test at the same time</b><br>right 69% of the time"/>
+    <text x="163.4" y="30.5" fill="#e9e6dd" font-size="8.5">69%</text>
+    </svg>
+  </div>
+  <div class="fc-take">
+    <b>35%</b>
+    <span class="fc-card-sub">I wanted watching the dog to beat the score at generation 15 and it didn't, at least not here. One dog on three flocks against a score that sums a batch of 32, and early dogs are flaky, so it isn't the last word.</span>
+    <svg viewBox="0 0 200 76" role="img" aria-label="At generation 15 the score picks the best of four 40% of the time, the three probe flocks 35%, flock progress 32%, guessing 25%.">
+    <text x="72" y="12.5" fill="#8490b5" font-size="8.5" text-anchor="end">score</text>
+    <rect x="78" y="3" width="47.2" height="12" rx="2" fill="#c561f6" data-tip="<b>best score this generation</b><br>picks the best of four 40% of the time"/>
+    <text x="129.2" y="12.5" fill="#e9e6dd" font-size="8.5">40%</text>
+    <text x="72" y="30.5" fill="#8490b5" font-size="8.5" text-anchor="end">three probes</text>
+    <rect x="78" y="21" width="41.3" height="12" rx="2" fill="#4c5470" data-tip="<b>score on three probe flocks</b><br>35%"/>
+    <text x="123.3" y="30.5" fill="#e9e6dd" font-size="8.5">35%</text>
+    <text x="72" y="48.5" fill="#8490b5" font-size="8.5" text-anchor="end">progress</text>
+    <rect x="78" y="39" width="37.8" height="12" rx="2" fill="#4c5470" data-tip="<b>flock progress to pen</b><br>32%"/>
+    <text x="119.8" y="48.5" fill="#e9e6dd" font-size="8.5">32%</text>
+    <text x="72" y="66.5" fill="#8490b5" font-size="8.5" text-anchor="end">guessing</text>
+    <rect x="78" y="57" width="29.5" height="12" rx="2" fill="#4c5470" data-tip="<b>guessing</b><br>25%"/>
+    <text x="111.5" y="66.5" fill="#e9e6dd" font-size="8.5">25%</text>
+    </svg>
+  </div>
+  <div class="fc-take">
+    <b>66%</b>
+    <span class="fc-card-sub">How often rehoming half the litter at generation 15 beats four full runs. It depends on how many runs were going to fail anyway: a draw for evolution, where four in ten come good, and two times in three for the evolution strategy, where half never get off the floor.</span>
+    <svg viewBox="0 0 200 76" role="img" aria-label="Rehoming at generation 15 by score so far beats four full runs 48% of the time for evolution, 51% for hill climbing, 66% for the evolution strategy, and about 40% at random.">
+    <text x="72" y="12.5" fill="#8490b5" font-size="8.5" text-anchor="end">evolution</text>
+    <rect x="78" y="3" width="56.6" height="12" rx="2" fill="#a93fe0" data-tip="<b>evolution</b><br>rehoming by score so far at 15 wins 48%, a draw. 39% of runs end with a dog that pens everything"/>
+    <text x="138.6" y="12.5" fill="#e9e6dd" font-size="8.5">48%</text>
+    <text x="72" y="30.5" fill="#8490b5" font-size="8.5" text-anchor="end">hill climbing</text>
+    <rect x="78" y="21" width="60.2" height="12" rx="2" fill="#c97c12" data-tip="<b>hill climbing</b><br>51% at generation 15, 59% at generation 5"/>
+    <text x="142.2" y="30.5" fill="#e9e6dd" font-size="8.5">51%</text>
+    <text x="72" y="48.5" fill="#8490b5" font-size="8.5" text-anchor="end">evo. strategy</text>
+    <rect x="78" y="39" width="77.9" height="12" rx="2" fill="#35a066" data-tip="<b>evolution strategy</b><br>66%, because 53% of its runs never got going and by 15 the score knows which"/>
+    <text x="159.9" y="48.5" fill="#e9e6dd" font-size="8.5">66%</text>
+    <text x="72" y="66.5" fill="#8490b5" font-size="8.5" text-anchor="end">at random</text>
+    <rect x="78" y="57" width="47.2" height="12" rx="2" fill="#4c5470" data-tip="<b>rehoming at random</b><br>about 40% for all three, the price of finishing three runs instead of four"/>
+    <text x="129.2" y="66.5" fill="#e9e6dd" font-size="8.5">40%</text>
+    </svg>
+  </div>
+  <div class="fc-take">
+    <b>0.59</b>
+    <span class="fc-card-sub">How well the score at generation 15 predicts the ending, per optimizer. The evolution strategy is the most predictable and the one that fails most often, and evolution is the least predictable and has the most winners.</span>
+    <svg viewBox="0 0 200 58" role="img" aria-label="Rank correlation between the score at generation 15 and the ending: evolution 0.18, hill climbing 0.48, evolution strategy 0.59.">
+    <text x="72" y="12.5" fill="#8490b5" font-size="8.5" text-anchor="end">evolution</text>
+    <rect x="78" y="3" width="21.2" height="12" rx="2" fill="#a93fe0" data-tip="<b>evolution</b><br>ρ 0.18 at generation 15. 39% of runs pen everything, 13% never got going"/>
+    <text x="103.2" y="12.5" fill="#e9e6dd" font-size="8.5">0.18</text>
+    <text x="72" y="30.5" fill="#8490b5" font-size="8.5" text-anchor="end">hill climbing</text>
+    <rect x="78" y="21" width="56.6" height="12" rx="2" fill="#c97c12" data-tip="<b>hill climbing</b><br>ρ 0.48. 5% pen everything, 12% never got going"/>
+    <text x="138.6" y="30.5" fill="#e9e6dd" font-size="8.5">0.48</text>
+    <text x="72" y="48.5" fill="#8490b5" font-size="8.5" text-anchor="end">evo. strategy</text>
+    <rect x="78" y="39" width="69.6" height="12" rx="2" fill="#35a066" data-tip="<b>evolution strategy</b><br>ρ 0.59. 15% pen everything, 53% never got going"/>
+    <text x="151.6" y="48.5" fill="#e9e6dd" font-size="8.5">0.59</text>
+    </svg>
+  </div>
+  <div class="fc-take">
+    <b>0.72</b>
+    <span class="fc-card-sub">How well a finished evolution run's training score agrees with its exam on unseen flocks. Even a finished run is a bit of a lottery, so a fair amount of the unpredictability is the exam rather than the training.</span>
+    <svg viewBox="0 0 200 40" role="img" aria-label="For evolution the rank correlation with the exam is 0.18 at generation 15 and 0.72 for the finished run.">
+    <text x="72" y="12.5" fill="#8490b5" font-size="8.5" text-anchor="end">generation 15</text>
+    <rect x="78" y="3" width="21.2" height="12" rx="2" fill="#4c5470" data-tip="<b>score at generation 15 vs exam</b><br>ρ 0.18"/>
+    <text x="103.2" y="12.5" fill="#e9e6dd" font-size="8.5">0.18</text>
+    <text x="72" y="30.5" fill="#8490b5" font-size="8.5" text-anchor="end">generation 120</text>
+    <rect x="78" y="21" width="85.0" height="12" rx="2" fill="#a93fe0" data-tip="<b>final training score vs exam</b><br>ρ 0.72 for evolution, and a perfect exam would be 1.00"/>
+    <text x="167.0" y="30.5" fill="#e9e6dd" font-size="8.5">0.72</text>
+    </svg>
+  </div>
+</figure>
 
 <script src="/sim/sheepdog.js" data-astro-rerun></script>
 <script src="/sim/robot-collie.js" data-astro-rerun></script>
@@ -328,6 +416,14 @@ I expected the transferable idea to be that what a model does carries earlier si
   .fc-step-tally { border-style: dashed; }
   .fc-step-tally b { color: var(--gray-0); }
   @media (max-width: 640px) { .fc-step:not(:last-child)::after { content: none; } .fc-flow-5 .fc-step-tally { grid-column: 1 / -1; } }
+  .fc-takeaways { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin: 1.25rem 0 0; }
+  @media (max-width: 860px) { .fc-takeaways { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .fc-takeaways { grid-template-columns: minmax(0, 1fr); } }
+  .fc-take { border: 1px solid var(--gray-800); border-radius: 0.75rem; padding: 0.9rem 1rem; background: var(--gray-999_40); display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
+  .fc-take > b { font-family: var(--font-brand); font-size: 1.9rem; line-height: 1.1; color: var(--accent-dark); }
+  .fc-take svg { display: block; width: 100%; height: auto; margin-top: auto; padding-top: 0.4rem; }
+  .fc-take svg text { font-family: var(--font-mono); }
+  .fc-take rect[data-tip] { cursor: default; }
   .fc-tip { position: fixed; z-index: 50; pointer-events: none; max-width: 24rem; padding: 0.45rem 0.65rem; border: 1px solid var(--gray-700); border-radius: 0.5rem; background: rgba(9,11,17,0.96); color: var(--gray-200); font-family: var(--font-mono); font-size: var(--text-sm); line-height: 1.5; }
   .fc-tip b { color: var(--gray-0); }
   .fc-tip i { display: inline-block; width: 10px; height: 3px; border-radius: 2px; margin: 0 0.4rem 0.2rem 0; }

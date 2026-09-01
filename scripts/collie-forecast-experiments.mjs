@@ -365,12 +365,12 @@ if (cmd === 'analyse') {
 				});
 			}
 		}
-		// Keep-or-kill at equal compute. Budget = K full runs (K*GENS generations
-		// of work). Policy: start 2K puppies, cull at generation g down to the
+		// Keep-or-rehome at equal compute. Budget = K full runs (K*GENS generations
+		// of work). Policy: start 2K puppies, rehome at generation g down to the
 		// M = floor((K*GENS - 2K*g)/(GENS - g)) that the remaining budget can
 		// afford (never over budget; "budget" records the fraction actually used),
 		// keep the top M by the signal, and take the best survivor's final dog.
-		// Baseline: best of K full runs. "random" culls at random, as a control.
+		// Baseline: best of K full runs. "random" rehomes at random, as a control.
 		// Monte Carlo over run subsets.
 		const rng = SD.mulberry32(1234);
 		O.cull = {};
@@ -478,15 +478,15 @@ function writeCharts(A) {
 		writeFileSync(`${OUT}/chart-jumps.html`, svg + legend([{ name: 'ended in the top quarter', color: C.a }, { name: 'the middle', color: 'rgba(233,230,221,0.5)' }, { name: 'ended in the bottom quarter', color: C.b }]));
 	}
 
-	// E. Keep or kill: how often triage by the score so far beats four full runs, by cull generation, per optimizer.
+	// E. Keep or rehome: how often triage by the score so far beats four full runs, by rehoming generation, per optimizer.
 	{
 		const names = { ga: 'evolution', hill: 'hill climbing', es: 'evolution strategy' };
 		const cols = { ga: C.a, hill: C.b, es: C.c };
 		const series = [];
 		for (const [k, O] of Object.entries(A.opts)) if (O.cull.bestSoFar && O.cull.bestSoFar.length) series.push({ name: names[k], color: cols[k], points: O.cull.bestSoFar.map((r) => [r.gen, r.cullWinRate * 100]) });
 		const rnd = (A.opts.ga || A.opts.hill || A.opts.es).cull.random;
-		if (rnd && rnd.length) series.push({ name: 'cull at random', color: 'rgba(233,230,221,0.6)', dash: '4 4', points: rnd.map((r) => [r.gen, r.cullWinRate * 100]) });
-		const svg = chart({ title: 'How often triage by the score so far beats four full runs at the same compute, by the generation you cull at', series, xmin: 0, xmax: 50, ymin: 0, ymax: 100, xticks: [0, 10, 20, 30, 40, 50], yticks: [0, 25, 50, 75, 100], xlabel: 'generation you cull at', ylabel: 'triage wins (%)', hlines: [{ y: 50 }], xname: 'cull at generation', yfmt: 'pct' });
+		if (rnd && rnd.length) series.push({ name: 'rehome at random', color: 'rgba(233,230,221,0.6)', dash: '4 4', points: rnd.map((r) => [r.gen, r.cullWinRate * 100]) });
+		const svg = chart({ title: 'How often triage by the score so far beats four full runs at the same compute, by the generation you rehome at', series, xmin: 0, xmax: 50, ymin: 0, ymax: 100, xticks: [0, 10, 20, 30, 40, 50], yticks: [0, 25, 50, 75, 100], xlabel: 'generation you rehome at', ylabel: 'triage wins (%)', hlines: [{ y: 50 }], xname: 'rehome at generation', yfmt: 'pct' });
 		writeFileSync(`${OUT}/chart-cull.html`, svg + legend(series.map((se) => ({ name: se.name, color: se.color }))));
 	}
 
@@ -538,7 +538,7 @@ function writeCharts(A) {
 // ---- demo export -------------------------------------------------------------------
 if (cmd === 'demo') {
 	// A compact library for the browser. Every run keeps its history (for the
-	// keep-or-kill widget); a stratified two dozen GA runs also keep their
+	// keep-or-rehome widget); a stratified two dozen GA runs also keep their
 	// champion genomes at the demo generations (for the guessing game).
 	const LIB = { level: LEVEL, gens: GENS, demoGens: DEMO_GENS, opts: {} };
 	for (const name of ['ga', 'hill', 'es']) {
