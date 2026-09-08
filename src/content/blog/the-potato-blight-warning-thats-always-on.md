@@ -17,6 +17,14 @@ Late blight is the disease that took Ireland's potato crop in the 1840s, and it 
 
 The rule behind the warning has a good pedigree. Smith fitted it to English weather and outbreak records in the 1950s, and Hutton's researchers relaxed it in 2017 when they found the modern strains infect after six humid hours rather than eleven. In both cases the test was the same: for each outbreak, was there an alert in the four weeks before? The Hutton version passed 96% of the time, and that number is what the service still rests on. The question nobody asked is the other half, how often the alert was on when nothing followed, because the answer decides whether a red dot means "this week" or just "it's July".
 
+So this is what I set out to do, in order.
+
+<div class="fc-methods">
+  <div><b>1. Score the warning properly</b><span>Rebuild the rule at every postcode district from station weather, reproduce the published 96%, then add the missing half: every district-day, including the ones where nothing followed.</span></div>
+  <div><b>2. Try to build a sharper one</b><span>Same public data, same catch rate, fewer alert days. Start with the things the rule ignores (what week it is, what the scouts have already reported nearby) and add better weather on top.</span></div>
+  <div><b>3. Find out where the signal is</b><span>Which of those parts does the work, and does the rule earn its keep anywhere, in any month or region? That decides what a grower should read into the red dot.</span></div>
+</div>
+
 ## The setup
 
 <div class="fc-flow" role="img" aria-label="3,259 confirmed outbreak reports from 2006 to 2025, in 525 postcode districts, with hourly weather from 100 stations interpolated to each district, giving 1.35 million district-days scored across the fourteen held-out seasons.">
@@ -95,9 +103,9 @@ Play a season. Purple districts are under a Hutton alert that day, orange rings 
 
 By July the map is purple from Cornwall to Aberdeenshire and stays that way, while the reports come in clusters: Kent and Suffolk one fortnight, Angus and Fife the next. The alert has no way of knowing which cluster is next because it doesn't look at the reports at all.
 
-## What a sharper warning looks at
+## Inside a sharper warning
 
-The best model I found doesn't replace the weather rule, it adds three things the rule ignores: what week it is, what has been reported nearby (weighted by distance and how recent), and how often this district has reported before. Scrub through a season and watch what it's reading.
+This is the model from step two, fitted only on seasons before the one shown. It doesn't replace the weather rule, it adds three things the rule ignores: what week it is, what has been reported nearby (weighted by distance and how recent), and how often this district has reported before. Scrub through a season and watch what it's reading.
 
 <div class="sheepdog" data-blight-thoughts>
   <div class="sheepdog-controls">

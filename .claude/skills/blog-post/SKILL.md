@@ -120,6 +120,15 @@ so anything that must stand out uses `--accent-dark`.
 - Heavy runs go lighter on phones (smaller batch, progress within a generation).
 - CSS for a post lives in a `<style>` block at the bottom of the markdown, scripts in `<script
   src="/sim/..." data-astro-rerun>` tags just above it. `readingTime` already strips those.
+- **Demo scripts must wait for their dependencies.** When a reader arrives from the blog index the
+  view-transition router inserts the post's scripts and they execute in arrival order, so a demo
+  script can run before its data library or `sheepdog.js` and, if it bails out with an early
+  `return`, nothing ever mounts (this broke every demo post until 9 Sep 2026). Pattern: declare
+  the dependency vars, resolve them inside `mountAll()`, return false if any is missing or no mount
+  point exists, and call it through a `mountWhenReady()` loop (retry every 50 ms, up to 400 tries)
+  from DOMContentLoaded and `astro:page-load`. See `public/sim/blight.js`. A script that needs its
+  dependency at module level (`robot-collie.js`) re-injects itself after 100 ms instead. Always test
+  a post by clicking through from `/blog/` as well as loading it directly.
 
 ## Workflow
 
