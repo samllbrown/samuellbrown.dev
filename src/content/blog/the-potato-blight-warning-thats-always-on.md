@@ -61,7 +61,7 @@ Pick a district and a year. The orange line is the night's minimum temperature, 
   </div>
 </div>
 
-Try Angus in 2012, the worst blight year in the record, and then 2018, the driest. In both the shading covers most of July and August. The reports land inside it, and so does everything else.
+Try Angus in 2012, the worst blight year in the record, and then 2018, the driest. In both the shading covers most of July and August, and the demo shows why. Once summer arrives the orange line sits above the 10° mark nearly every night, because a British night in July is rarely colder than that, and six hours at 90% humidity is just a night with dew on the grass, so the bars clear the 6 h mark most days too. Both halves of the rule are met by ordinary summer weather, two such days in a row come along every week, and each one keeps the alert on for a fortnight. The reports land inside the shading, and so does everything else. The rule only bites at the edges of the season, in May when the nights are still cold and in late September when they turn cold again, which is where you can see the shading break up.
 
 ## Score it yourself
 
