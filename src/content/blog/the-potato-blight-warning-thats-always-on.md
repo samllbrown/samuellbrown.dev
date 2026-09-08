@@ -122,6 +122,23 @@ This is the model from step two, fitted only on seasons before the one shown. It
 
 The purple line is the model's chance of a report in this district in the coming week, the blue line is a model given weather alone. In a bad year the purple line climbs a fortnight before the first local report, on the strength of reports arriving thirty miles away, and the weather line goes up and down with the humidity as it has all summer.
 
+## So, is it a better model?
+
+Yes and no, and the split matters more than the headline.
+
+<div class="fc-compare">
+  <div class="fc-card">
+    <b>Yes: a sharper warning</b>
+    <span class="fc-card-sub">Fitted only on earlier seasons and scored on each season in turn, the full model catches the outbreak-weeks the Hutton alert catches while being on for 30% of days instead of 61%, and it ranks days at 0.86 AUC against 0.62. It wins on all four ways of asking the question, in every region, and in every one of the fourteen seasons.</span>
+  </div>
+  <div class="fc-card">
+    <b>No: not a better weather rule</b>
+    <span class="fc-card-sub">Given weather alone, the best model I could build reaches 0.75, which is real but modest, and once the model also knows the week and what has been reported nearby, that weather adds a single point. Most of the sharpness comes from information the rule ignores, not from reading humidity better than Smith did in 1956.</span>
+  </div>
+</div>
+
+What it is not, yet, is a service. It scores the day it is on, where BlightSpy looks eight days ahead, so turning it into a forecast means feeding it forecast weather, and the nearby-reports term leans on scouts being where the blight is. What it does show is that the two ingredients that sharpen the warning most, the calendar and the outbreak map, are already published by the same people who issue the red dot.
+
 ## The numbers
 
 First the published test, then the missing half.
@@ -415,6 +432,10 @@ I went looking for a better humidity rule and there is one, worth six points of 
   .fc-take svg { display: block; width: 100%; height: auto; margin-top: auto; padding-top: 0.4rem; }
   .fc-take svg text { font-family: var(--font-mono); }
   .fc-take rect[data-tip] { cursor: default; }
+  .fc-compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; margin: 1.25rem 0; }
+  @media (max-width: 640px) { .fc-compare { grid-template-columns: minmax(0, 1fr); } }
+  .fc-card { border: 1px solid var(--gray-800); border-radius: 0.75rem; padding: 0.9rem 1rem; background: var(--gray-999_40); display: flex; flex-direction: column; gap: 0.4rem; }
+  .fc-card > b { font-family: var(--font-brand); font-size: 1.2rem; color: var(--gray-0); }
   .fc-card-sub { font-size: var(--text-sm); color: var(--gray-300); line-height: 1.45; }
   .fc-tip { position: fixed; z-index: 50; pointer-events: none; max-width: 24rem; padding: 0.45rem 0.65rem; border: 1px solid var(--gray-700); border-radius: 0.5rem; background: rgba(9,11,17,0.96); color: var(--gray-200); font-family: var(--font-mono); font-size: var(--text-sm); line-height: 1.5; }
   .fc-tip b { color: var(--gray-0); }
