@@ -25,7 +25,13 @@
 	var isWorker = typeof importScripts === 'function' && typeof document === 'undefined';
 	if (isWorker && !globalThis.__Sheepdog) importScripts('/sim/sheepdog.js');
 	var SD = globalThis.__Sheepdog;
-	if (!SD) throw new Error('robot-collie.js needs sheepdog.js');
+	if (!SD) {
+		if (isWorker) throw new Error('robot-collie.js needs sheepdog.js');
+		// Client-side navigation can run this before sheepdog.js has arrived: try again shortly.
+		globalThis.__RobotCollieRetries = (globalThis.__RobotCollieRetries || 0) + 1;
+		if (globalThis.__RobotCollieRetries < 100) setTimeout(function () { var s = document.createElement('script'); s.src = '/sim/robot-collie.js'; document.head.appendChild(s); }, 100);
+		return;
+	}
 
 	// Dogs can have different numbers of inputs: the first N_IN-1 of the feature
 	// list below plus the bias. A genome's length says how many its dog has.

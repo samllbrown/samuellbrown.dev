@@ -11,6 +11,12 @@ tags:
 
 Does the blight warning tell a potato grower which week to worry about? The one Britain issues is the **Hutton Criteria**: two days running with a minimum of 10°C and six hours at 90% humidity, and a red dot on the map. I took every outbreak the Fight Against Blight scouts have reported since 2006, put the rule back together from weather station records at every postcode district, and scored it the way it has never been scored, against the days when nothing followed.
 
+## The problem
+
+Late blight is the disease that took Ireland's potato crop in the 1840s, and it hasn't gone anywhere. Given a warm wet week it can turn a green field brown in ten days, so British growers don't wait for it: a crop gets a protective fungicide every seven days or so from June until the haulm comes off, a dozen or more sprays in a wet year, whatever the forecast says. What the warning is actually for is the decisions inside that programme, whether to tighten the interval to five days this week, whether to switch to a stronger and dearer product, whether it's worth walking the field for the first lesions. Those decisions are getting harder, because since 2023 the strains arriving in Britain carry resistance to two of the main fungicide groups, so a spray put on at the wrong moment now costs more than money.
+
+The rule behind the warning has a good pedigree. Smith fitted it to English weather and outbreak records in the 1950s, and Hutton's researchers relaxed it in 2017 when they found the modern strains infect after six humid hours rather than eleven. In both cases the test was the same: for each outbreak, was there an alert in the four weeks before? The Hutton version passed 96% of the time, and that number is what the service still rests on. The question nobody asked is the other half, how often the alert was on when nothing followed, because the answer decides whether a red dot means "this week" or just "it's July".
+
 ## The setup
 
 <div class="fc-flow" role="img" aria-label="3,259 confirmed outbreak reports from 2006 to 2025, in 525 postcode districts, with hourly weather from 100 stations interpolated to each district, giving 1.35 million district-days scored across the fourteen held-out seasons.">

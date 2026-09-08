@@ -10,8 +10,9 @@
 (function () {
 	'use strict';
 	if (typeof document === 'undefined') return;
-	var SD = globalThis.__Sheepdog, B = globalThis.__RobotCollie, LIB = globalThis.__CollieForecastRuns;
-	if (!SD || !B || !LIB) return;
+	// With client-side navigation the scripts can execute in any order, so the
+	// dependencies are picked up at mount time and waited for.
+	var SD, B, LIB;
 
 	var COL = { text: '#8490b5', axis: 'rgba(255,255,255,0.14)', mark: 'rgba(255,255,255,0.35)' };
 	var PUP = ['#a93fe0', '#c97c12', '#35a066', '#4f9cf9'];
@@ -280,9 +281,16 @@
 	}
 
 	function mountAll() {
+		SD = globalThis.__Sheepdog; B = globalThis.__RobotCollie; LIB = globalThis.__CollieForecastRuns;
+		if (!SD || !B || !LIB || !document.querySelector('[data-forecast-bet]')) return false;
 		document.querySelectorAll('[data-forecast-bet]').forEach(function (r) { if (!r.dataset.ready) { r.dataset.ready = '1'; mountBet(r); } });
 		mountFigures();
+		return true;
 	}
-	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountAll); else mountAll();
-	document.addEventListener('astro:page-load', mountAll);
+	function mountWhenReady() {
+		var tries = 0;
+		(function attempt() { if (!mountAll() && tries++ < 400) setTimeout(attempt, 50); })();
+	}
+	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountWhenReady); else mountWhenReady();
+	document.addEventListener('astro:page-load', mountWhenReady);
 })();

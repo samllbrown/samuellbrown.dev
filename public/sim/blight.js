@@ -12,8 +12,9 @@
 (function () {
 	'use strict';
 	if (typeof document === 'undefined') return;
-	var C = globalThis.__BlightCore, D = globalThis.__BlightData;
-	if (!C || !D) return;
+	// With client-side navigation the three scripts can execute in any order, so
+	// wait for the core and the data library rather than bailing out.
+	var C, D;
 
 	var COL = { text: '#8490b5', axis: 'rgba(255,255,255,0.14)', val: '#e9e6dd', purple: '#a93fe0', hi: '#c561f6', orange: '#c97c12', green: '#35a066', blue: '#4f9cf9', grey: '#4c5470', alert: 'rgba(169,63,224,0.28)' };
 	var MONTHS = ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'];
@@ -310,10 +311,17 @@
 	}
 
 	function mountAll() {
+		C = globalThis.__BlightCore; D = globalThis.__BlightData;
+		if (!C || !D || !document.querySelector('[data-blight-season], [data-blight-score], [data-blight-map], [data-blight-thoughts]')) return false;
 		var m = [['[data-blight-season]', mountSeason], ['[data-blight-score]', mountScore], ['[data-blight-map]', mountMap], ['[data-blight-thoughts]', mountThoughts]];
 		m.forEach(function (pair) { document.querySelectorAll(pair[0]).forEach(function (r) { if (!r.dataset.ready) { r.dataset.ready = '1'; pair[1](r); } }); });
 		mountFigures();
+		return true;
 	}
-	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountAll); else mountAll();
-	document.addEventListener('astro:page-load', mountAll);
+	function mountWhenReady() {
+		var tries = 0;
+		(function attempt() { if (!mountAll() && tries++ < 400) setTimeout(attempt, 50); })();
+	}
+	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountWhenReady); else mountWhenReady();
+	document.addEventListener('astro:page-load', mountWhenReady);
 })();
