@@ -9,13 +9,13 @@ tags:
   - AI
 ---
 
-Does the blight warning tell a potato grower which week to worry about? The one Britain issues is the **Hutton Criteria**: two days running with a minimum of 10°C and six hours at 90% humidity, and a red dot on the map. I took every outbreak the Fight Against Blight scouts have reported since 2006, put the rule back together from weather station records at every postcode district, and scored it the way it has never been scored, against the days when nothing followed.
+Does the blight warning tell a potato grower which week to worry about? The one Britain issues is the **Hutton Criteria**: two days running with a minimum of 10°C and six hours at 90% humidity, and a red dot on the map. I took every outbreak the Fight Against Blight scouts have reported since 2006, put the rule back together from weather station records at every postcode district, and scored it against the days when nothing followed as well as the days when something did.
 
 ## The problem
 
-Late blight is the disease that took Ireland's potato crop in the 1840s, and it hasn't gone anywhere. Given a warm wet week it can turn a green field brown in ten days, so British growers don't wait for it: a crop gets a protective fungicide every seven days or so from June until the haulm comes off, whatever the forecast says. What the warning is for is the decisions inside that programme, whether to tighten the interval to five days this week, switch to a dearer product, or walk the field for the first lesions, and since 2023 the strains arriving in Britain resist two of the main fungicide groups, so a spray at the wrong moment costs more than money.
+Late blight is the disease that took Ireland's potato crop in the 1840s, and it is still here every summer. Given a warm wet week it can turn a green field brown in ten days, so British growers don't wait for it: a crop gets a protective fungicide every seven days or so from June until the haulm comes off, whatever the forecast says. What the warning is for is the decisions inside that programme, whether to tighten the interval to five days this week, switch to a dearer product, or walk the field for the first lesions, and since 2023 the strains arriving in Britain resist two of the main fungicide groups, so getting the timing wrong matters more than it used to.
 
-The rule behind the warning has a good pedigree. Smith fitted it to English weather and outbreak records in the 1950s, and Hutton's researchers relaxed it in 2017 when they found the modern strains infect after six humid hours rather than eleven. Both times the test was the same: for each outbreak, was there an alert in the four weeks before? The Hutton version passed 96% of the time, and that number is what the service still rests on. What the test can't say is how often the alert was on when nothing followed, and that decides whether a red dot means "this week" or just "it's July".
+The rule behind the warning is old and has been tested, in one sense. Smith fitted it to English weather and outbreak records in the 1950s, and Hutton's researchers relaxed it in 2017 when they found the modern strains infect after six humid hours rather than eleven. Both times the test was the same: for each outbreak, was there an alert in the four weeks before? The Hutton version passed 96% of the time, and that number is what the service still rests on. What the test can't say is how often the alert was on when nothing followed, and that is the difference between a red dot that means this week and one that just means it's July.
 
 So this is what I set out to do, in order.
 
@@ -61,9 +61,9 @@ Pick a district and a year. The orange line is the night's minimum temperature, 
   </div>
 </div>
 
-This is Angus in 2012, the worst blight year in the record; switch to 2018 for the driest. In both the shading covers most of July and August, and the demo shows why. Once summer arrives the orange line sits above the 10° mark nearly every night, because a British night in July is rarely colder than that, and six hours at 90% humidity is just a night with dew on the grass, so the bars clear the 6 h mark most days too. Both halves of the rule are met by ordinary summer weather, two such days in a row come along every week, and each one keeps the alert on for a fortnight. The reports land inside the shading, and so does everything else. The rule only bites at the edges of the season, in May when the nights are still cold and in late September when they turn cold again, which is where you can see the shading break up.
+This is Angus in 2012, the worst blight year in the record; switch to 2018 for the driest. In both the shading covers most of July and August, and the demo shows why. Once summer arrives the orange line sits above the 10° mark nearly every night, because a British night in July is rarely colder than that, and six hours at 90% humidity is just a night with dew on the grass, so the bars clear the 6 h mark most days too. Both halves of the rule are met by ordinary summer weather, two such days in a row come along every week, and each one keeps the alert on for a fortnight. The reports land inside the shading, but so do most of the days when nothing happened. The rule only bites at the edges of the season, in May when the nights are still cold and in late September when they turn cold again, which is where you can see the shading break up.
 
-One choice sits under every number on this page: how long a Hutton period keeps the alert on. I count a district as under alert for the 14 days after a period, because infection takes a week or two to show and the published validation itself looks back 28 days, but the published figures count an alert only on the day a period is declared, which is how the same rule gives Skelsey 31% of alert days and me 61%. Drag the "alert held for" slider and watch the shading, the share of days and the catch all move while the last number, the published test, doesn't.
+There is one choice behind every number on this page, which is how long a Hutton period keeps the alert on. I count a district as under alert for the 14 days after a period, because infection takes a week or two to show and the published validation itself looks back 28 days, but the published figures count an alert only on the day a period is declared, which is how the same rule gives Skelsey 31% of alert days and me 61%. Drag the "alert held for" slider and watch the shading, the share of days and the catch all move while the last number, the published test, doesn't.
 
 <figure class="robot-figure" data-chart="hold">
 <svg class="robot-svg" viewBox="0 0 640 280" role="img" aria-label="Share of district-days under alert and share of outbreak-weeks caught, against how many days a Hutton period keeps the alert on; the published test does not move" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="12" data-lines='{"w":640,"h":280,"pad":{"l":44,"r":16,"t":16,"b":40},"xmin":0,"xmax":28,"ymin":0,"ymax":100,"xname":"held for days","yfmt":"pct","series":[{"name":"district-days under alert","color":"#a93fe0","points":[[1,16.07],[2,22.31],[3,28.54],[5,38.11],[7,45.36],[10,53.35],[14,60.69],[21,68.26],[28,72.95]]},{"name":"outbreak-weeks caught","color":"#35a066","points":[[1,26.59],[2,36],[3,45.54],[5,58.95],[7,67.82],[10,76.63],[14,83.95],[21,90.26],[28,93.25]]},{"name":"reports with a period in the 28 days before (the published test)","color":"#c97c12","points":[[1,94.48],[2,94.48],[3,94.48],[5,94.48],[7,94.48],[10,94.48],[14,94.48],[21,94.48],[28,94.48]]}]}'>
@@ -88,7 +88,7 @@ One choice sits under every number on this page: how long a Hutton period keeps 
 <circle cx="334.0" cy="52.0" r="7" fill="#35a066" stroke="#fff" stroke-width="1.5" data-tip="<b>held 14 days, as used here</b><br>catches 84% of outbreak-weeks"/>
 </svg>
 <div class="robot-legend"><span><i style="background:#a93fe0"></i>district-days under alert</span><span><i style="background:#35a066"></i>outbreak-weeks caught</span><span><i style="background:#c97c12"></i>reports with a period in the 28 days before (the published test)</span></div>
-<figcaption>The full run at every hold from one day to 28. Held for 7 days the alert covers 45% of district-days and catches 68% of outbreak-weeks; on the declared day alone, 16% and 27%. The published test sits at 94 to 95% throughout, because it can't see any of this.</figcaption>
+<figcaption>The full run at every hold from one day to 28. Held for 7 days the alert covers 45% of district-days and catches 68% of outbreak-weeks; on the declared day alone, 16% and 27%. The published test sits at 94 to 95% throughout, because it never looks at the days in between.</figcaption>
 </figure>
 
 ## Score it yourself
@@ -113,7 +113,7 @@ Every rule in the family lands somewhere on this chart. Across the axes are how 
   <div class="robot-legend"><span><i style="background:#c561f6"></i>model: calendar, nearby reports, place and weather</span><span><i style="background:#35a066"></i>reports within 100 km in the last 28 days</span><span><i style="background:#c97c12"></i>week of the year alone</span><span><i style="background:#a93fe0"></i>Hutton days in the last 14 days</span></div>
 </div>
 
-Sweep the hours and the rule traces its own curve, and the whole family sits under the calendar. Sweep the hold and it traces the same curve from the other end, so the 14 days is a choice of where to sit on it, not a way off it. Moving the temperature or the days running moves it along that curve too. The published test (the share of reports with a period in the 28 days before) barely moves either, because it can't tell a rule that is nearly always on from one that is right.
+Sweep the hours and the rule traces its own curve, and the whole family sits under the calendar. Sweep the hold and it traces the same curve from the other end, so the choice of 14 days only decides where on that curve the rule sits. Moving the temperature or the days running moves it along that curve too. The published test (the share of reports with a period in the 28 days before) barely moves either, because it can't tell a rule that is nearly always on from one that is right.
 
 ## A season on the map
 
@@ -153,16 +153,16 @@ The purple line is the model's chance of a report in this district in the coming
 
 ## So, is it a better model?
 
-Most of the scores from here on are AUC, which works like this: pick one district-day that was followed by a report and one that wasn't, and AUC is the chance that the signal scores the first one higher. A coin toss gets 0.5, a perfect ranking gets 1, and unlike the catch rate it doesn't depend on where you draw the line, which is why it is the fairest single number for a warning that is on most of the time.
+Most of the scores from here on are AUC, which works like this: pick one district-day that was followed by a report and one that wasn't, and AUC is the chance that the signal scores the first one higher. A coin toss gets 0.5, a perfect ranking gets 1, and unlike the catch rate it doesn't depend on where you draw the line, which matters for a warning that is on most of the time.
 
 <div class="fc-compare">
   <div class="fc-card">
     <b>Yes: a sharper warning</b>
-    <span class="fc-card-sub">Fitted only on earlier seasons and scored on each season in turn, the full model catches the outbreak-weeks the Hutton alert catches while being on for 30% of days instead of 61%, and it ranks days at 0.86 AUC against 0.62. It wins on all four ways of asking the question, in every region, and in every one of the fourteen seasons.</span>
+    <span class="fc-card-sub">Fitted only on earlier seasons and scored on each season in turn, the full model catches the outbreak-weeks the Hutton alert catches while being on for 30% of days instead of 61%, and it ranks days at 0.86 AUC against 0.62. It comes out ahead on all four outcomes, in each region and in each of the fourteen seasons.</span>
   </div>
   <div class="fc-card">
     <b>No: not a better weather rule</b>
-    <span class="fc-card-sub">Given weather alone, the best model I could build reaches 0.75, which is real but modest, and once the model also knows the week and what has been reported nearby, that weather adds a single point. Most of the sharpness comes from information the rule ignores, not from reading humidity better than Smith did in 1956.</span>
+    <span class="fc-card-sub">Given weather alone, the best model I could build reaches 0.75, which is something but not much, and once the model also knows the week and what has been reported nearby, that weather adds a single point. Most of the gain comes from information the rule ignores rather than from reading humidity better than Smith did in 1956.</span>
   </div>
 </div>
 
@@ -170,7 +170,7 @@ The research model scores the day it is on, where BlightSpy looks eight days ahe
 
 ## This week, live
 
-This map is not BlightSpy's, it is mine, and the page fetches it from my own service each time it loads. Every morning a GitHub Action in the [blight-forecast](https://github.com/samllbrown/blight-forecast) repo pulls this season's reports from the Fight Against Blight API, pulls a fortnight back and eight days ahead of hourly weather for all 525 districts from Open-Meteo, builds the same features as the research panel, scores every district for today and the week ahead with the model fitted on 2006 to 2025, and commits the result as [one JSON file](https://github.com/samllbrown/blight-forecast/blob/master/live/latest.json). Pick a day. It is an experiment on public data, not spray advice.
+This map comes from my own service rather than from BlightSpy, and the page fetches it fresh each time it loads. Every morning a GitHub Action in the [blight-forecast](https://github.com/samllbrown/blight-forecast) repo pulls this season's reports from the Fight Against Blight API, pulls a fortnight back and eight days ahead of hourly weather for all 525 districts from Open-Meteo, builds the same features as the research panel, scores every district for today and the week ahead with the model fitted on 2006 to 2025, and commits the result as [one JSON file](https://github.com/samllbrown/blight-forecast/blob/master/live/latest.json). Pick a day, and treat it as an experiment on public data rather than spray advice.
 
 <div class="sheepdog" data-blight-live data-src="https://raw.githubusercontent.com/samllbrown/blight-forecast/master/live/latest.json">
   <div class="sheepdog-controls bl-days" data-role="days"></div>
@@ -289,7 +289,7 @@ First the trade-off every signal makes, then when in the season the alert works.
     <b><i style="background:#35a066"></i>nearby reports</b>
     <svg viewBox="0 0 200 76" role="img" aria-label="nearby reports: AUC on four outcomes"><text x="72" y="12.5" fill="#8490b5" font-size="8.5" text-anchor="end">district, 7 d</text><rect x="78" y="3" width="71.5" height="12" rx="2" fill="#35a066" data-tip="<b>nearby reports</b>, district, 7 d<br>AUC 0.79, catches 92% at the Hutton alert rate, needs 44% of days for the Hutton catch rate"/><text x="153.5" y="12.5" fill="#e9e6dd" font-size="8.5">0.79</text><text x="72" y="30.5" fill="#8490b5" font-size="8.5" text-anchor="end">district, 7 to 21 d</text><rect x="78" y="21" width="63.5" height="12" rx="2" fill="#35a066" data-tip="<b>nearby reports</b>, district, 7 to 21 d<br>AUC 0.71, catches 84% at the Hutton alert rate, needs 54% of days for the Hutton catch rate"/><text x="145.5" y="30.5" fill="#e9e6dd" font-size="8.5">0.71</text><text x="72" y="48.5" fill="#8490b5" font-size="8.5" text-anchor="end">25 km, 7 d</text><rect x="78" y="39" width="72.3" height="12" rx="2" fill="#35a066" data-tip="<b>nearby reports</b>, 25 km, 7 d<br>AUC 0.80, catches 92% at the Hutton alert rate, needs 39% of days for the Hutton catch rate"/><text x="154.3" y="48.5" fill="#e9e6dd" font-size="8.5">0.80</text><text x="72" y="66.5" fill="#8490b5" font-size="8.5" text-anchor="end">25 km, 7 to 21 d</text><rect x="78" y="57" width="64.4" height="12" rx="2" fill="#35a066" data-tip="<b>nearby reports</b>, 25 km, 7 to 21 d<br>AUC 0.72, catches 83% at the Hutton alert rate, needs 51% of days for the Hutton catch rate"/><text x="146.4" y="66.5" fill="#e9e6dd" font-size="8.5">0.72</text></svg>
     <span class="fc-signal-val">AUC 0.79 on the district week, 44% of days for the Hutton catch rate</span>
-    <span class="fc-card-sub">Reports nearby, weighted by distance and how recent they are. The best single signal.</span>
+    <span class="fc-card-sub">Reports nearby, weighted by distance and how recent they are, which is the best single signal.</span>
   </div>
   <div class="fc-signal">
     <b><i style="background:#4c5470"></i>district history</b>
@@ -372,7 +372,7 @@ Some things this can't say:
 - Where there are no scouts there are no reports, so some of what "nearby reports" knows is where the scouts are. The same scouts get the Hutton alerts, so some detection is alert-led, which flatters the rule if anything.
 - Station humidity interpolated to a district centroid isn't the humidity in a potato canopy. Reanalysis weather gave the same alert on 83% of days and the same story.
 - Nothing here says growers could spray less. British blight programmes are preventive and weekly whatever the alert says, and no one measures unsprayed crops.
-- The live outlook is a hindcast model pointed forwards. Its weather comes from a forecast rather than from stations, its "this season so far" score is on a handful of reports until the season is over, and if the scouts stop reporting the model goes quiet with them.
+- The live outlook is the research model run on forecast weather. That weather comes from a forecast model rather than from stations, its "this season so far" score is on a handful of reports until the season is over, and if the scouts stop reporting the model goes quiet with them.
 
 ## What I took from it
 
@@ -391,8 +391,8 @@ Hover a bar for the numbers behind it.
   </div>
   <div class="fc-take">
     <b>30%</b>
-    <span class="fc-card-sub">of days under alert is what the full model needs to catch what the Hutton alert catches on 61%. About half the alerts, same catch.</span>
-    <svg viewBox="0 0 200 58" role="img" aria-label="of days under alert is what the full model needs to catch what the Hutton alert catches on 61%. About half the alerts, same catch."><text x="72" y="12.5" fill="#8490b5" font-size="8.5" text-anchor="end">Hutton alert</text><rect x="78" y="3" width="54.6" height="12" rx="2" fill="#4c5470" data-tip="<b>the Hutton alert</b><br>on 61% of days for a 84% catch"/><text x="136.6" y="12.5" fill="#e9e6dd" font-size="8.5">61%</text><text x="72" y="30.5" fill="#8490b5" font-size="8.5" text-anchor="end">weather model</text><rect x="78" y="21" width="41.0" height="12" rx="2" fill="#4c5470" data-tip="<b>weather model</b><br>46% of days for the same catch"/><text x="123.0" y="30.5" fill="#e9e6dd" font-size="8.5">46%</text><text x="72" y="48.5" fill="#8490b5" font-size="8.5" text-anchor="end">everything</text><rect x="78" y="39" width="26.9" height="12" rx="2" fill="#c561f6" data-tip="<b>everything</b><br>30% of days for the same catch"/><text x="108.9" y="48.5" fill="#e9e6dd" font-size="8.5">30%</text></svg>
+    <span class="fc-card-sub">of days under alert is what the full model needs to catch what the Hutton alert catches on 61%. About half the alert days for the same catch.</span>
+    <svg viewBox="0 0 200 58" role="img" aria-label="of days under alert is what the full model needs to catch what the Hutton alert catches on 61%. About half the alert days for the same catch."><text x="72" y="12.5" fill="#8490b5" font-size="8.5" text-anchor="end">Hutton alert</text><rect x="78" y="3" width="54.6" height="12" rx="2" fill="#4c5470" data-tip="<b>the Hutton alert</b><br>on 61% of days for a 84% catch"/><text x="136.6" y="12.5" fill="#e9e6dd" font-size="8.5">61%</text><text x="72" y="30.5" fill="#8490b5" font-size="8.5" text-anchor="end">weather model</text><rect x="78" y="21" width="41.0" height="12" rx="2" fill="#4c5470" data-tip="<b>weather model</b><br>46% of days for the same catch"/><text x="123.0" y="30.5" fill="#e9e6dd" font-size="8.5">46%</text><text x="72" y="48.5" fill="#8490b5" font-size="8.5" text-anchor="end">everything</text><rect x="78" y="39" width="26.9" height="12" rx="2" fill="#c561f6" data-tip="<b>everything</b><br>30% of days for the same catch"/><text x="108.9" y="48.5" fill="#e9e6dd" font-size="8.5">30%</text></svg>
   </div>
   <div class="fc-take">
     <b>+1</b>
@@ -411,7 +411,7 @@ Hover a bar for the numbers behind it.
   </div>
 </figure>
 
-I went looking for a better humidity rule and there is one, worth six points of AUC to a weather-only warning, but it isn't the story. The story is that from late June a warm humid night is the normal state of a British summer, so a rule that fires on warm humid nights fires all the time, and the information that would sharpen it (the week, and what the scouts have already found nearby) is public and sitting on the same website as the alert. Running the model each morning cost an afternoon; whether it earns a place next to the red dot is for the next season to say.
+I went looking for a better humidity rule and there is one, worth six points of AUC to a weather-only warning, but it isn't the main thing I found. From late June a warm humid night is the normal state of a British summer, so a rule that fires on warm humid nights fires all the time, and the information that would sharpen it (the week, and what the scouts have already found nearby) is public and sitting on the same website as the alert. Running the model each morning took an afternoon to set up, and the next season will show whether it is worth keeping next to the red dot.
 
 <script src="/sim/blight-core.js" data-astro-rerun></script>
 <script src="/sim/blight-data.js" data-astro-rerun></script>
