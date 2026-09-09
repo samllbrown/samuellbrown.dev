@@ -42,7 +42,7 @@
 				b.addEventListener('click', function () { day = i; draw(); });
 				dayRow.appendChild(b);
 			});
-			if (stamp) stamp.textContent = 'run ' + L.generated.replace('T', ' ').slice(0, 16) + ', model fitted on ' + L.fitted_seasons[0] + ' to ' + L.fitted_seasons[1];
+			if (stamp) stamp.innerHTML = 'fetched just now from <a href="https://github.com/samllbrown/blight-forecast/blob/master/live/latest.json">blight-forecast/live/latest.json</a>, written by <a href="https://github.com/samllbrown/blight-forecast/actions/workflows/live.yml">the daily action</a> at ' + L.generated.replace('T', ' ').slice(0, 16) + ' with the model fitted on ' + L.fitted_seasons[0] + ' to ' + L.fitted_seasons[1];
 			if (scoreEl && L.score) {
 				var s = L.score;
 				scoreEl.innerHTML = '<b>' + L.season + ' so far</b> (1 May to ' + fmtDay(parseDay(s.through)) + ', ' + s.positives + ' district-days followed by a report): the Hutton alert was on for <b>' + pct(s.hutton_alert_share) + '</b> of district-days and caught <b>' + pct(s.hutton_catch) + '</b> of them (AUC ' + s.hutton_auc.toFixed(2) + '); the model ranks them at AUC <b>' + s.model_auc.toFixed(2) + '</b> and catches the same share on <b>' + pct(s.model_rate_for_hutton_catch) + '</b> of days.';

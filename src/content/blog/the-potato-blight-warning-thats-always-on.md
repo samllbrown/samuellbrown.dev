@@ -170,7 +170,7 @@ The research model scores the day it is on, where BlightSpy looks eight days ahe
 
 ## This week, live
 
-Every morning a small job pulls this season's reports from the Fight Against Blight API, pulls a fortnight back and eight days ahead of hourly weather for all 525 districts from Open-Meteo, builds the same features as the research panel, and scores every district for today and the week ahead with the model fitted on 2006 to 2025. Pick a day. It is an experiment on public data, not spray advice.
+This map is not BlightSpy's, it is mine, and the page fetches it from my own service each time it loads. Every morning a GitHub Action in the [blight-forecast](https://github.com/samllbrown/blight-forecast) repo pulls this season's reports from the Fight Against Blight API, pulls a fortnight back and eight days ahead of hourly weather for all 525 districts from Open-Meteo, builds the same features as the research panel, scores every district for today and the week ahead with the model fitted on 2006 to 2025, and commits the result as [one JSON file](https://github.com/samllbrown/blight-forecast/blob/master/live/latest.json). Pick a day. It is an experiment on public data, not spray advice.
 
 <div class="sheepdog" data-blight-live data-src="https://raw.githubusercontent.com/samllbrown/blight-forecast/master/live/latest.json">
   <div class="sheepdog-controls bl-days" data-role="days"></div>
