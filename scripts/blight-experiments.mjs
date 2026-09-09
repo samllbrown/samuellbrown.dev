@@ -103,38 +103,54 @@ if (cmd === 'analyse') {
 	const hut = C.scoreAll(D.demo, C.HUTTON), smith = C.scoreAll(D.demo, C.SMITH);
 	log(`Demo districts (${D.order.join(', ')}), Hutton: alert on ${pct(hut.alertShare)} of days, catches ${pct(hut.catchRate)} of days followed by a report, published metric ${pct(hut.published)}; Smith: ${pct(smith.alertShare)} / ${pct(smith.catchRate)} / ${pct(smith.published)}`);
 	const sweep = [];
-	for (let hrs = 1; hrs <= 16; hrs++) { const s = C.scoreAll(D.demo, { tmin: 10, hours: hrs, days: 2, window: 14 }); sweep.push([hrs, s.alertShare, s.catchRate]); }
+	for (let hrs = 1; hrs <= 18; hrs++) { const s = C.scoreAll(D.demo, { tmin: 10, hours: hrs, days: 2, window: 14 }); sweep.push([hrs, s.alertShare, s.catchRate]); }
 	log('Sweep of humid hours (alert share, catch):', sweep.map(([h, a, c]) => `${h}h ${pct(a)}/${pct(c)}`).join('  '));
-	writeFileSync(`${OUT}/demo-numbers.json`, JSON.stringify({ hutton: hut, smith, sweep }, null, 1));
+	const holds = [1, 3, 7, 14, 28].map((w) => { const s = C.scoreAll(D.demo, { tmin: 10, hours: 6, days: 2, window: w }); return [w, s.alertShare, s.catchRate, s.published]; });
+	log('Hold sweep on demo districts (alert, catch, published):', holds.map(([w, a, c, p]) => `${w}d ${pct(a)}/${pct(c)}/${pct(p)}`).join('  '));
+	writeFileSync(`${OUT}/demo-numbers.json`, JSON.stringify({ hutton: hut, smith, sweep, holds }, null, 1));
 
 	// A. Catch rate against alert days, the full-run curves with the Hutton operating point.
 	{
 		const pick = { 'Model: all': [COL.hi, 'model: calendar, nearby reports, place and weather'], 'Reports within 100 km, 28 d': [COL.c, 'reports within 100 km in the last 28 days'], 'Week-of-year climatology': [COL.b, 'week of the year alone'], 'Hutton days in last 14 d': [COL.a, 'Hutton days in the last 14 days'] };
 		const series = Object.entries(pick).map(([k, [color, name]]) => ({ name, color, points: D.curves[k].map(([a, r]) => [a * 100, r * 100]) }));
-		series.push({ name: 'no skill', color: 'rgba(233,230,221,0.6)', dash: '4 4', points: [[0, 0], [100, 100]] });
+		series.push({ name: 'no skill', color: 'rgba(233,230,221,0.6)', dash: '4 4', silent: true, points: [[0, 0], [100, 100]] });
 		const all = D.groups.find((g) => g.group === 'all');
 		const marks = [{ x: all.hutton_alert_rate * 100, y: all.hutton_recall * 100, color: '#e9e6dd', tip: `<b>the Hutton alert as issued</b><br>on for ${pct(all.hutton_alert_rate)} of district-days, catches ${pct(all.hutton_recall)} of the days followed by a report` }];
-		const svg = chart({ title: 'Share of outbreak-weeks caught against share of district-days under alert, every season 2012 to 2025 held out in turn', series, marks, xmin: 0, xmax: 100, ymin: 0, ymax: 100, xticks: [0, 25, 50, 75, 100], yticks: [0, 25, 50, 75, 100], xlabel: 'district-days under alert (%)', ylabel: 'days followed by a report that were under alert (%)', xname: 'alert days %', yfmt: 'pct' });
+		const svg = chart({ title: 'Share of outbreak-weeks caught against share of district-days under alert, every season 2012 to 2025 held out in turn', series, marks, xmin: 0, xmax: 100, ymin: 0, ymax: 100, xticks: [0, 25, 50, 75, 100], yticks: [0, 25, 50, 75, 100], xlabel: 'district-days under alert (%)', ylabel: 'outbreak-weeks caught (%)', xname: 'alert days %', yfmt: 'pct' });
 		writeFileSync(`${OUT}/chart-curves.html`, svg + legend([{ name: 'the Hutton alert as issued', color: '#e9e6dd' }].concat(series.filter((s) => !s.dash).map((se) => ({ name: se.name, color: se.color })))));
 	}
 	// B. By week: alert share and when the reports come.
 	{
 		const wk = D.weeks.filter((w) => w.week >= 18 && w.week <= 43);
-		const totalPos = wk.reduce((a, w) => a + w.positives, 0);
+		const peakPos = Math.max(...wk.map((w) => w.positives));
 		const series = [
 			{ name: 'district-days under Hutton alert', color: COL.a, points: wk.map((w) => [w.doy_start, w.hutton_alert_share * 100]) },
-			{ name: 'share of the season\'s outbreak-weeks falling that week', color: COL.b, points: wk.map((w) => [w.doy_start, w.positives / totalPos * 100]) },
+			{ name: 'outbreak-weeks that week, as a share of the busiest week', color: COL.b, points: wk.map((w) => [w.doy_start, w.positives / peakPos * 100]) },
 		];
 		const months = [{ v: 121, label: 'May' }, { v: 152, label: 'Jun' }, { v: 182, label: 'Jul' }, { v: 213, label: 'Aug' }, { v: 244, label: 'Sep' }, { v: 274, label: 'Oct' }];
 		const svg = chart({ title: 'By week of the year: how often the alert is on, and when the outbreaks come', series, xmin: 119, xmax: 308, ymin: 0, ymax: 100, xticks: months, yticks: [0, 25, 50, 75, 100], xlabel: '', ylabel: 'percent', xname: 'day of year', yfmt: 'pct' });
 		writeFileSync(`${OUT}/chart-weeks.html`, svg + legend(series.map((se) => ({ name: se.name, color: se.color }))));
 		const series2 = [
-			{ name: 'Hutton alert', color: COL.a, points: wk.map((w) => [w.doy_start, w.hutton_auc]) },
+			{ name: 'Hutton alert', color: COL.val, points: wk.map((w) => [w.doy_start, w.hutton_auc]) },
 			{ name: 'reports within 100 km', color: COL.c, points: wk.map((w) => [w.doy_start, w.near100_auc]) },
 			{ name: 'model: all', color: COL.hi, points: wk.map((w) => [w.doy_start, w.best_auc]) },
 		];
 		const svg2 = chart({ title: 'How well each signal ranks the districts within a given week (AUC, 0.5 is a coin toss)', series: series2, xmin: 119, xmax: 308, ymin: 0.3, ymax: 1, xticks: months, yticks: [0.5, 0.75, 1], hlines: [{ y: 0.5 }], ylabel: 'AUC within the week', xname: 'day of year' });
 		writeFileSync(`${OUT}/chart-weeks-auc.html`, svg2 + legend(series2.map((se) => ({ name: se.name, color: se.color }))));
+	}
+	// B2. How long the alert is held: alert days and catch rate against the hold, full run.
+	{
+		const hw = D.hold_window;
+		const series = [
+			{ name: 'district-days under alert', color: COL.a, points: hw.map((r) => [r.hold_days, r.alert_share * 100]) },
+			{ name: 'outbreak-weeks caught', color: COL.c, points: hw.map((r) => [r.hold_days, r.catch_rate * 100]) },
+			{ name: 'reports with a period in the 28 days before (the published test)', color: COL.b, dash: '4 4', points: hw.map((r) => [r.hold_days, r.published_metric * 100]) },
+		];
+		const at14 = hw.find((r) => r.hold_days === 14);
+		const marks = [{ x: 14, y: at14.alert_share * 100, color: COL.a, tip: `<b>held 14 days, as used here</b><br>on for ${pct(at14.alert_share)} of days` }, { x: 14, y: at14.catch_rate * 100, color: COL.c, tip: `<b>held 14 days, as used here</b><br>catches ${pct(at14.catch_rate)} of outbreak-weeks` }];
+		const svg = chart({ title: 'Share of district-days under alert and share of outbreak-weeks caught, against how many days a Hutton period keeps the alert on; the published test does not move', series, marks, xmin: 0, xmax: 28, ymin: 0, ymax: 100, xticks: [1, 7, 14, 21, 28], yticks: [0, 25, 50, 75, 100], xlabel: 'days the alert is held after a Hutton period', ylabel: 'percent', xname: 'held for days', yfmt: 'pct' });
+		writeFileSync(`${OUT}/chart-hold.html`, svg + legend(series.map((se) => ({ name: se.name, color: se.color }))));
+		log('Hold window (full run):', hw.map((r) => `${r.hold_days}d ${pct(r.alert_share)}/${pct(r.catch_rate)}`).join('  '));
 	}
 	// C. Signal cards: AUC of each signal on the four outcomes.
 	{
@@ -142,7 +158,7 @@ if (cmd === 'analyse') {
 		const sigs = [
 			['Hutton alert (period in last 14 d)', 'the Hutton alert', COL.a, 'On or off, as issued.'],
 			['Hutton days in last 14 d', 'Hutton days in 14', COL.a, 'Counting qualifying days instead of the on/off flag helps a bit.'],
-			['Smith periods in last 28 d', 'the Smith Period', COL.grey, 'The 1956 rule it replaced. Fires less often and catches less.'],
+			['Smith periods in last 28 d', 'the Smith Period', COL.grey, (r) => `The 1956 rule it replaced. It would need ${pct(r.rate_for_hutton_recall)} of days to catch what Hutton catches.`],
 			['Week-of-year climatology (prior seasons)', 'week of the year', COL.b, 'The calendar alone, learned from earlier seasons, beats the alert on every outcome.'],
 			['Inoculum kernel (all reports)', 'nearby reports', COL.c, 'Reports nearby, weighted by distance and how recent they are. The best single signal.'],
 			['Prior-season district rate', 'district history', COL.grey, 'How often this district reported in earlier seasons.'],
@@ -153,7 +169,7 @@ if (cmd === 'analyse') {
 		for (const [key, name, color, sub] of sigs) {
 			const rows = outs.map(([o, lab]) => { const r = row(D.part_b[o], key); return { label: lab, value: r ? r.auc : 0, color, tip: `<b>${name}</b>, ${lab}<br>AUC ${r ? r.auc.toFixed(2) : '?'}, catches ${r ? pct(r.recall_at_hutton_rate) : '?'} at the Hutton alert rate, needs ${r ? pct(r.rate_for_hutton_recall) : '?'} of days for the Hutton catch rate` }; });
 			const y7 = row(D.part_b.y7, key);
-			html += `  <div class="fc-signal">\n    <b><i style="background:${color}"></i>${name}</b>\n    ${minibars(rows, 1, `${name}: AUC on four outcomes`).replace(/\n/g, '')}\n    <span class="fc-signal-val">AUC ${y7.auc.toFixed(2)} on the district week, ${pct(y7.rate_for_hutton_recall)} of days for the Hutton catch rate</span>\n    <span class="fc-card-sub">${sub}</span>\n  </div>\n`;
+			html += `  <div class="fc-signal">\n    <b><i style="background:${color}"></i>${name}</b>\n    ${minibars(rows, 1, `${name}: AUC on four outcomes`).replace(/\n/g, '')}\n    <span class="fc-signal-val">AUC ${y7.auc.toFixed(2)} on the district week, ${pct(y7.rate_for_hutton_recall)} of days for the Hutton catch rate</span>\n    <span class="fc-card-sub">${typeof sub === 'function' ? sub(y7) : sub}</span>\n  </div>\n`;
 		}
 		writeFileSync(`${OUT}/chart-signals.html`, html + '</figure>\n');
 	}
@@ -163,7 +179,7 @@ if (cmd === 'analyse') {
 		const g = D.groups.find((x) => x.group === 'all');
 		const wales = D.groups.find((x) => x.group === 'Wales'), scot = D.groups.find((x) => x.group === 'Scotland'), eng = D.groups.find((x) => x.group === 'England');
 		const cards = [
-			{ big: pct(g.hutton_alert_rate), sub: `of season days are under a Hutton alert, so it catches ${pct(g.hutton_recall)} of outbreak-weeks mostly by being on. Wales is worse than Scotland.`,
+			{ big: pct(g.hutton_alert_rate), sub: `of season days are under a Hutton alert, so it catches ${pct(g.hutton_recall)} of outbreak-weeks mostly by being on. In Wales it is on three days in four.`,
 				rows: [{ label: 'Scotland', value: scot.hutton_alert_rate, text: pct(scot.hutton_alert_rate), tip: `<b>Scotland</b><br>alert on ${pct(scot.hutton_alert_rate)} of days, catches ${pct(scot.hutton_recall)}` }, { label: 'England', value: eng.hutton_alert_rate, text: pct(eng.hutton_alert_rate), tip: `<b>England</b><br>alert on ${pct(eng.hutton_alert_rate)} of days, catches ${pct(eng.hutton_recall)}` }, { label: 'Wales', value: wales.hutton_alert_rate, text: pct(wales.hutton_alert_rate), color: COL.hi, tip: `<b>Wales</b><br>alert on ${pct(wales.hutton_alert_rate)} of days, catches ${pct(wales.hutton_recall)}` }], max: 1 },
 			{ big: all.auc.toFixed(2), sub: `AUC for the full model against ${hutt.auc.toFixed(2)} for the alert. The calendar alone and nearby reports alone both beat the alert.`,
 				rows: [{ label: 'Hutton alert', value: hutt.auc, tip: `<b>the Hutton alert</b><br>AUC ${hutt.auc.toFixed(2)}` }, { label: 'week of year', value: clim.auc, tip: `<b>week of the year</b><br>AUC ${clim.auc.toFixed(2)}` }, { label: 'nearby reports', value: kern.auc, tip: `<b>nearby reports</b><br>AUC ${kern.auc.toFixed(2)}` }, { label: 'everything', value: all.auc, color: COL.hi, tip: `<b>everything</b><br>AUC ${all.auc.toFixed(2)}` }], max: 1 },
@@ -171,9 +187,9 @@ if (cmd === 'analyse') {
 				rows: [{ label: 'Hutton alert', value: g.hutton_alert_rate, text: pct(g.hutton_alert_rate), tip: `<b>the Hutton alert</b><br>on ${pct(g.hutton_alert_rate)} of days for a ${pct(g.hutton_recall)} catch` }, { label: 'weather model', value: wx.rate_for_hutton_recall, text: pct(wx.rate_for_hutton_recall), tip: `<b>weather model</b><br>${pct(wx.rate_for_hutton_recall)} of days for the same catch` }, { label: 'everything', value: all.rate_for_hutton_recall, text: pct(all.rate_for_hutton_recall), color: COL.hi, tip: `<b>everything</b><br>${pct(all.rate_for_hutton_recall)} of days for the same catch` }], max: 1 },
 			{ big: `+${((all.auc - crp.auc) * 100).toFixed(0)}`, sub: `points of AUC is all the weather adds once the model knows the week, the nearby reports and the place. Better weather features help a weather-only model a lot, and the full model hardly at all.`,
 				rows: [{ label: 'weather only', value: wx.auc, tip: `<b>weather only, rich features</b><br>AUC ${wx.auc.toFixed(2)} (basic features ${row(y7, 'gbm: weather_basic').auc.toFixed(2)})` }, { label: 'no weather', value: crp.auc, tip: `<b>calendar, reports, place, no weather</b><br>AUC ${crp.auc.toFixed(2)}` }, { label: 'everything', value: all.auc, color: COL.hi, tip: `<b>everything</b><br>AUC ${all.auc.toFixed(2)}` }], max: 1 },
-			{ big: pct(D.part_a.hutton_any_in_28d), sub: `of reports had a Hutton period in the 28 days before, which reproduces the published 96%. It is the only test the rule has ever been given, and a rule on ${pct(g.hutton_alert_rate)} of days cannot fail it.`,
+			{ big: pct(D.part_a.hutton_any_in_28d), sub: `of reports had a Hutton period in the 28 days before, which reproduces the published 96%. It is the test the rule was given, and a rule on ${pct(g.hutton_alert_rate)} of days cannot fail it.`,
 				rows: [{ label: 'Smith', value: D.part_a.smith_any_in_28d, text: pct(D.part_a.smith_any_in_28d), tip: `<b>Smith Period</b><br>${pct(D.part_a.smith_any_in_28d)} of reports had a Smith period in the prior 28 days` }, { label: 'Hutton', value: D.part_a.hutton_any_in_28d, text: pct(D.part_a.hutton_any_in_28d), color: COL.hi, tip: `<b>Hutton Criteria</b><br>${pct(D.part_a.hutton_any_in_28d)} here, 96.1% in Skelsey 2021` }], max: 1 },
-			{ big: '0.5', sub: `is roughly the alert's within-week AUC through July and August, when it is on for 70 to 88% of days. In May and early June, on for a fifth of days, it does discriminate.`,
+			{ big: (() => { const ja = D.weeks.filter((x) => x.week >= 26 && x.week <= 34).map((x) => x.hutton_auc); return (ja.reduce((a, b) => a + b, 0) / ja.length).toFixed(2); })(), sub: (() => { const ja = D.weeks.filter((x) => x.week >= 26 && x.week <= 34).map((x) => x.hutton_auc); return `is the alert's average within-week AUC through July and August (${Math.min(...ja).toFixed(2)} to ${Math.max(...ja).toFixed(2)}), when it is on for 70 to 88% of days. In May and early June, on for a fifth of days, it does better.`; })(),
 				rows: (() => { const w = (n) => D.weeks.find((x) => x.week === n); return [{ label: 'late May', value: w(21).hutton_auc, tip: `<b>week starting day ${w(21).doy_start}</b><br>alert on ${pct(w(21).hutton_alert_share)} of days, within-week AUC ${w(21).hutton_auc.toFixed(2)}` }, { label: 'mid July', value: w(28).hutton_auc, tip: `<b>week starting day ${w(28).doy_start}</b><br>alert on ${pct(w(28).hutton_alert_share)} of days, within-week AUC ${w(28).hutton_auc.toFixed(2)}` }, { label: 'late Aug', value: w(34).hutton_auc, color: COL.hi, tip: `<b>week starting day ${w(34).doy_start}</b><br>alert on ${pct(w(34).hutton_alert_share)} of days, within-week AUC ${w(34).hutton_auc.toFixed(2)}` }]; })(), max: 1 },
 		];
 		let html = `<figure class="robot-figure fc-takeaways">\n`;
@@ -205,7 +221,7 @@ if (cmd === 'analyse') {
 // ---- inject into the post ----------------------------------------------------------
 if (cmd === 'inject') {
 	let md = readFileSync(POST, 'utf8');
-	for (const name of ['curves', 'weeks', 'weeks-auc']) {
+	for (const name of ['curves', 'weeks', 'weeks-auc', 'hold']) {
 		const re = new RegExp(`(<figure class="robot-figure" data-chart="${name}">\\n)[\\s\\S]*?(<figcaption>)`);
 		if (!re.test(md)) { log('no figure for', name); continue; }
 		md = md.replace(re, (m, a, b) => a + readFileSync(`${OUT}/chart-${name}.html`, 'utf8') + b);

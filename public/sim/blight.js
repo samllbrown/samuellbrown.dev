@@ -55,9 +55,10 @@
 		var canvas = root.querySelector('canvas'), hud = root.querySelector('[data-role="hud"]');
 		var selD = root.querySelector('[data-role="district"]'), selY = root.querySelector('[data-role="year"]');
 		D.order.forEach(function (oc) { option(selD, oc, D.names[oc], oc === 'DD8'); });
-		function fillYears() { var cur = selY.value; selY.innerHTML = ''; Object.keys(D.demo[selD.value]).forEach(function (y) { option(selY, y, y, y === (cur || '2012')); }); }
+		function fillYears() { var cur = selY.value; selY.innerHTML = ''; Object.keys(D.demo[selD.value]).forEach(function (y) { option(selY, y, D.demo[selD.value][y].live ? y + ' so far (live)' : y, y === (cur || '2012')); }); }
 		fillYears();
 		selD.addEventListener('change', function () { fillYears(); draw(); }); selY.addEventListener('change', draw);
+		document.addEventListener('blight-season-added', function () { fillYears(); draw(); });
 		bindRule(root, draw);
 		function draw() {
 			var s = D.demo[selD.value][selY.value]; if (!s) return;
@@ -88,7 +89,8 @@
 			// reports
 			s.reports.forEach(function (r) { var x = X(r[0]) + dx / 2; g.fillStyle = r[1] ? COL.orange : 'rgba(201,124,18,0.5)'; g.beginPath(); g.moveTo(x, pad.t - 2); g.lineTo(x - 5, pad.t - 12); g.lineTo(x + 5, pad.t - 12); g.closePath(); g.fill(); });
 			g.fillStyle = COL.text; g.textAlign = 'left'; g.textBaseline = 'top'; g.fillText('min temp', pad.l + 4, pad.t + 2); g.fillText('hours at RH ≥ 90%', pad.l + 4, barTop + 2);
-			hud.innerHTML = '<span>' + ruleText(rule) + '</span><span><b>' + pct(sc.on / sc.days) + '</b> of days under alert · ' + sc.reports + ' report' + (sc.reports === 1 ? '' : 's') + (sc.npos ? ', <b>' + sc.caught + ' of ' + sc.npos + '</b> days followed by one were under alert' : '') + '</span>';
+			if (s.live) { var tx = X(s.forecastFrom) + dx / 2; g.strokeStyle = COL.val; g.setLineDash([3, 3]); g.beginPath(); g.moveTo(tx, pad.t); g.lineTo(tx, h - pad.b); g.stroke(); g.setLineDash([]); g.fillText('today', tx + 4, pad.t + 2); g.fillText('forecast →', tx + 4, pad.t + 14); }
+			hud.innerHTML = '<span>' + ruleText(rule) + '</span><span><b>' + pct(sc.on / sc.days) + '</b> of days under alert · ' + sc.reports + ' report' + (sc.reports === 1 ? '' : 's') + (sc.npos ? ', alert on for <b>' + sc.caught + ' of the ' + sc.npos + '</b> days that had a report within the week' : '') + '</span>';
 		}
 		draw();
 		if ('ResizeObserver' in window) new ResizeObserver(draw).observe(root); else window.addEventListener('resize', draw);
@@ -98,18 +100,22 @@
 	function mountScore(root) {
 		var canvas = root.querySelector('canvas'), hud = root.querySelector('[data-role="hud"]'), trail = [], sweeping = false;
 		bindRule(root, function () { trail = []; draw(); });
-		var sweepBtn = root.querySelector('[data-action="sweep"]');
-		if (sweepBtn) sweepBtn.addEventListener('click', function () {
-			if (sweeping) return; sweeping = true; trail = []; var hrs = 1;
-			var rule = readRule(root);
-			(function step() {
-				if (!document.body.contains(root)) return;
-				var r = { tmin: rule.tmin, hours: hrs, days: rule.days, window: rule.window }, sc = C.scoreAll(D.demo, r, 7);
-				trail.push({ hours: hrs, x: sc.alertShare, y: sc.catchRate });
-				root.querySelector('[data-rule="hours"]').value = hrs; root.querySelector('[data-rule-out="hours"]').textContent = hrs + ' h';
-				draw(); hrs++;
-				if (hrs <= 16) setTimeout(step, 220); else sweeping = false;
-			})();
+		root.querySelectorAll('[data-action="sweep"]').forEach(function (btn) {
+			btn.addEventListener('click', function () {
+				if (sweeping) return; sweeping = true; trail = [];
+				var key = btn.dataset.sweep === 'window' ? 'window' : 'hours', max = key === 'window' ? 28 : 18, v = 1;
+				var rule = readRule(root), inp = root.querySelector('[data-rule="' + key + '"]'), out = root.querySelector('[data-rule-out="' + key + '"]');
+				(function step() {
+					if (!document.body.contains(root)) { sweeping = false; return; }
+					var r = { tmin: rule.tmin, hours: rule.hours, days: rule.days, window: rule.window }; r[key] = v;
+					var sc = C.scoreAll(D.demo, r, 7);
+					trail.push({ label: key === 'window' ? 'held ' + v + ' d' : v + ' h', x: sc.alertShare, y: sc.catchRate });
+					inp.value = v; out.textContent = v + (key === 'window' ? ' d' : ' h');
+					draw(); v++;
+					if (v <= max) setTimeout(step, key === 'window' ? 150 : 220);
+					else { sweeping = false; inp.value = rule[key]; out.textContent = rule[key] + (key === 'window' ? ' d' : ' h'); draw(); }
+				})();
+			});
 		});
 		function draw() {
 			var rule = readRule(root), sc = C.scoreAll(D.demo, rule, 7);
@@ -129,7 +135,7 @@
 			g.fillStyle = COL.val; g.beginPath(); g.arc(X(D.hutton.alertRate), Y(D.hutton.recall), 5, 0, Math.PI * 2); g.fill();
 			g.fillStyle = COL.text; g.textAlign = 'right'; g.textBaseline = 'top'; g.fillText('Hutton as issued, 525 districts', X(D.hutton.alertRate) - 8, Y(D.hutton.recall) + 4);
 			// trail
-			if (trail.length) { g.strokeStyle = COL.hi; g.lineWidth = 1; g.beginPath(); trail.forEach(function (t, i) { if (i) g.lineTo(X(t.x), Y(t.y)); else g.moveTo(X(t.x), Y(t.y)); }); g.stroke(); trail.forEach(function (t) { g.fillStyle = 'rgba(197,97,246,0.6)'; g.beginPath(); g.arc(X(t.x), Y(t.y), 3, 0, Math.PI * 2); g.fill(); }); }
+			if (trail.length) { g.strokeStyle = COL.hi; g.lineWidth = 1; g.beginPath(); trail.forEach(function (t, i) { if (i) g.lineTo(X(t.x), Y(t.y)); else g.moveTo(X(t.x), Y(t.y)); }); g.stroke(); trail.forEach(function (t) { g.fillStyle = 'rgba(197,97,246,0.6)'; g.beginPath(); g.arc(X(t.x), Y(t.y), 3, 0, Math.PI * 2); g.fill(); }); g.fillStyle = COL.text; g.textAlign = 'left'; g.textBaseline = 'bottom'; [trail[0], trail[trail.length - 1]].forEach(function (t, i) { if (t && (i === 0 || trail.length > 1)) g.fillText(t.label, X(t.x) + 6, Y(t.y) - 4); }); }
 			// your point
 			g.strokeStyle = COL.hi; g.lineWidth = 2.5; g.beginPath(); g.arc(X(sc.alertShare), Y(sc.catchRate), 7, 0, Math.PI * 2); g.stroke(); g.lineWidth = 1;
 			g.fillStyle = COL.hi; g.textAlign = 'left'; g.textBaseline = 'top'; g.fillText('your rule', X(sc.alertShare) + 9, Y(sc.catchRate) + 4);
@@ -194,8 +200,9 @@
 		var slider = root.querySelector('[data-role="day"]'), dateEl = root.querySelector('[data-role="date"]'), badge = root.querySelector('[data-role="badge"]');
 		var barsEl = root.querySelector('[data-role="bars"]');
 		D.order.forEach(function (oc) { if (D.model[oc]) option(selD, oc, D.names[oc], oc === 'DD8'); });
-		function fillYears() { var cur = selY.value; selY.innerHTML = ''; Object.keys(D.model[selD.value]).forEach(function (y) { option(selY, y, y, y === (cur || '2024')); }); }
+		function fillYears() { var cur = selY.value; selY.innerHTML = ''; Object.keys(D.model[selD.value]).forEach(function (y) { option(selY, y, D.demo[selD.value] && D.demo[selD.value][y] && D.demo[selD.value][y].live ? y + ' so far (live)' : y, y === (cur || '2024')); }); }
 		fillYears();
+		document.addEventListener('blight-season-added', function () { fillYears(); drawStrip(); });
 		var INPUTS = [
 			['clim', 'week of the year', 'share of district-days followed by a report in this week of earlier seasons', 0.03, COL.orange, function (v) { return pct(v, 1); }],
 			['kern', 'nearby reports', 'reports nearby, weighted by distance and recency (30 km, 10 day scales)', 4, COL.green, function (v) { return v.toFixed(2); }],
@@ -218,13 +225,13 @@
 			var m = cur(), s = D.demo[selD.value][selY.value], day = parseInt(slider.value, 10);
 			var w = canvas.clientWidth || 600, h = 120, g = setupCanvas(canvas, w, h);
 			var pad = { l: 34, r: 10, t: 16, b: 20 }, W = w - pad.l - pad.r, n = C.DAYS, X = function (i) { return pad.l + i / n * W; }, dx = W / n;
-			var pmax = 0.3, Y = function (v) { return h - pad.b - Math.min(1, v / pmax) * (h - pad.b - pad.t); };
+			var pmax = Math.max(0.1, Math.ceil(Math.max.apply(null, m.p.concat(m.pw).filter(function (v) { return v != null; })) * 20) / 20), Y = function (v) { return h - pad.b - Math.min(1, v / pmax) * (h - pad.b - pad.t); };
 			g.clearRect(0, 0, w, h); g.font = FONT;
 			var f = C.flags(s.tmin, s.rh, C.HUTTON);
 			for (var i = 0; i < n; i++) if (f.alert[i]) { g.fillStyle = COL.alert; g.fillRect(X(i), pad.t, dx + 0.5, h - pad.b - pad.t); }
 			g.strokeStyle = COL.axis; g.fillStyle = COL.text; g.textAlign = 'left'; g.textBaseline = 'top';
 			MONTH_START.forEach(function (ms, k) { g.beginPath(); g.moveTo(X(ms) + 0.5, pad.t); g.lineTo(X(ms) + 0.5, h - pad.b); g.stroke(); g.fillText(MONTHS[k], X(ms) + 3, h - pad.b + 4); });
-			g.textAlign = 'right'; g.textBaseline = 'middle'; g.fillText('30%', pad.l - 4, Y(0.3)); g.fillText('0', pad.l - 4, Y(0));
+			g.textAlign = 'right'; g.textBaseline = 'middle'; g.fillText(Math.round(pmax * 100) + '%', pad.l - 4, Y(pmax)); g.fillText('0', pad.l - 4, Y(0));
 			[['pw', COL.blue, 1.2], ['p', COL.hi, 2]].forEach(function (ser) {
 				g.strokeStyle = ser[1]; g.lineWidth = ser[2]; g.beginPath(); var st = false;
 				for (i = 0; i < n; i++) { var v = m[ser[0]][i]; if (v == null) { st = false; continue; } var x = X(i) + dx / 2; if (!st) { g.moveTo(x, Y(v)); st = true; } else g.lineTo(x, Y(v)); }
@@ -233,6 +240,7 @@
 			g.lineWidth = 1;
 			s.reports.forEach(function (r) { var x = X(r[0]) + dx / 2; g.fillStyle = COL.orange; g.beginPath(); g.moveTo(x, pad.t - 2); g.lineTo(x - 5, pad.t - 12); g.lineTo(x + 5, pad.t - 12); g.closePath(); g.fill(); });
 			g.strokeStyle = COL.val; g.beginPath(); g.moveTo(X(day) + dx / 2, pad.t - 12); g.lineTo(X(day) + dx / 2, h - pad.b); g.stroke();
+			if (s.live) { var tx = X(s.forecastFrom) + dx / 2; g.strokeStyle = COL.text; g.setLineDash([3, 3]); g.beginPath(); g.moveTo(tx, pad.t); g.lineTo(tx, h - pad.b); g.stroke(); g.setLineDash([]); g.fillStyle = COL.text; g.textAlign = 'left'; g.textBaseline = 'top'; g.fillText('today', tx + 4, pad.t); }
 			// readout
 			var alertOn = f.alert[day];
 			dateEl.textContent = dateLabel(parseInt(selY.value, 10), day);
@@ -241,6 +249,7 @@
 			var p = m.p[day], pw = m.pw[day];
 			pRow.querySelector('i').style.width = p == null ? '0' : Math.min(100, p / pmax * 100) + '%'; pRow.querySelector('.bl-bar-val').textContent = p == null ? '' : pct(p, 1);
 			pwRow.querySelector('i').style.width = pw == null ? '0' : Math.min(100, pw / pmax * 100) + '%'; pwRow.querySelector('.bl-bar-val').textContent = pw == null ? '' : pct(pw, 1);
+			pwRow.hidden = !m.pw.some(function (v) { return v != null; });   // the live season has no weather-only model
 			var next = s.reports.filter(function (r) { return r[0] > day && r[0] <= day + 7; }).length;
 			var soon = root.querySelector('[data-role="soon"]'); if (soon) soon.textContent = next ? next + ' report' + (next > 1 ? 's' : '') + ' in this district in the next 7 days' : 'no report here in the next 7 days';
 		}
