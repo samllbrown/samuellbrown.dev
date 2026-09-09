@@ -1,5 +1,5 @@
 ---
-title: The potato blight warning that's always on
+title: I rebuilt Britain's potato blight warning to see what it tells you
 publishDate: 2026-09-09 00:00:00
 description: |
   British potato growers get a blight warning built on a two-day humidity rule. I scored it against twenty years of scout reports, including the days when nothing followed, which the published tests skip, and found it is on for most of the summer. There's a rule you can bend yourself, a season you can play out on a map, a sharper warning to look inside, and a version of it that runs every morning.
