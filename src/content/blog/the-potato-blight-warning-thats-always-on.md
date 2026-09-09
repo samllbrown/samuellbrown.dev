@@ -153,6 +153,8 @@ The purple line is the model's chance of a report in this district in the coming
 
 ## So, is it a better model?
 
+Most of the scores from here on are AUC, which works like this: pick one district-day that was followed by a report and one that wasn't, and AUC is the chance that the signal scores the first one higher. A coin toss gets 0.5, a perfect ranking gets 1, and unlike the catch rate it doesn't depend on where you draw the line, which is why it is the fairest single number for a warning that is on most of the time.
+
 <div class="fc-compare">
   <div class="fc-card">
     <b>Yes: a sharper warning</b>
