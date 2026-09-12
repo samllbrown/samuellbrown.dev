@@ -170,18 +170,34 @@ The research model scores the day it is on, where BlightSpy looks eight days ahe
 
 ## This week, live
 
-This map comes from my own service rather than from BlightSpy, and the page fetches it fresh each time it loads. Every morning a GitHub Action in the [blight-forecast](https://github.com/samllbrown/blight-forecast) repo pulls this season's reports from the Fight Against Blight API, pulls a fortnight back and eight days ahead of hourly weather for all 525 districts from Open-Meteo, builds the same features as the research panel, scores every district for today and the week ahead with the model fitted on 2006 to 2025, and commits the result as [one JSON file](https://github.com/samllbrown/blight-forecast/blob/master/live/latest.json). Pick a day, and treat it as an experiment on public data rather than spray advice.
+This map comes from my own service rather than from BlightSpy, and the page fetches it fresh each time it loads. Every morning a GitHub Action in the [blight-forecast](https://github.com/samllbrown/blight-forecast) repo pulls this season's reports from the Fight Against Blight API, pulls a fortnight back and eight days ahead of hourly weather for all 525 districts from Open-Meteo, builds the same features as the research panel, scores every district for today and the week ahead with the model fitted on 2006 to 2025, and commits the result as [one JSON file](https://github.com/samllbrown/blight-forecast/blob/master/live/latest.json). Pick a day, type a postcode (or just a district like DD8) to read your own district off it, or click a dot on the map, and treat it as an experiment on public data rather than spray advice.
 
 <div class="sheepdog" data-blight-live data-src="https://raw.githubusercontent.com/samllbrown/blight-forecast/master/live/latest.json">
+  <form class="sheepdog-controls bl-lookup" data-role="lookup" autocomplete="off">
+    <label for="bl-postcode">your postcode</label>
+    <input id="bl-postcode" type="text" placeholder="e.g. DD8 3QU, or just DD8" aria-label="Postcode or postcode district">
+    <button type="submit">check</button>
+    <span class="fc-tally">or try</span>
+    <button type="button" data-example="DD8">DD8</button>
+    <button type="button" data-example="IP12 4AB">IP12 4AB</button>
+    <button type="button" data-example="SA48">SA48</button>
+    <span class="fc-tally" data-role="lookup-msg"></span>
+  </form>
   <div class="sheepdog-controls bl-days" data-role="days"></div>
-  <canvas class="bl-canvas bl-map" data-role="map" aria-label="Map of Britain, districts coloured by the model's chance of a report this week, with the Hutton alert and this season's reports"></canvas>
+  <canvas class="bl-canvas bl-map" data-role="map" aria-label="Map of Britain, districts coloured by the model's chance of a report this week, with the Hutton alert and this season's reports; click a district to pick it"></canvas>
   <div class="sheepdog-hud" data-role="hud"></div>
+  <div class="bl-place" data-role="place" hidden>
+    <div class="bl-place-head" data-role="place-head"></div>
+    <div class="bl-tiles" data-role="place-tiles"></div>
+    <canvas class="bl-canvas" data-role="week" aria-label="The chosen district's model chance for today and the week ahead, with the Hutton alert and the nearest scored districts"></canvas>
+    <div class="fc-tally bl-place-near" data-role="place-near"></div>
+  </div>
   <canvas class="bl-canvas" data-role="strip" aria-label="This season so far: share of districts under a Hutton alert, share above the model's line, and reports per day"></canvas>
   <div class="sheepdog-hud"><span data-role="score"></span></div>
   <div class="sheepdog-hud"><span class="fc-tally" data-role="stamp"></span></div>
 </div>
 
-The map is the same as the earlier one with the model's view painted over it: the Hutton ring is on nearly everywhere, and the model's colour is concentrated where reports have been arriving. Once the outlook has loaded, the first and fourth demos gain a "so far (live)" entry in their year lists, so you can see this season's Angus under the rule, and what the model is reading there today. The weather it runs on is Open-Meteo's analysis and forecast rather than the station records the model was fitted on, so its Hutton flag will disagree with BlightSpy's on some days; the model's probability moves little, because most of it comes from the calendar and the reports.
+The map is the same as the earlier one with the model's view painted over it: the Hutton ring is on nearly everywhere, and the model's colour is concentrated where reports have been arriving. The dots are the 525 postcode districts that have reported an outbreak since 2006, each scored at the spot its reports cluster around, so a postcode in a district with no history gets its nearest scored district and the distance to it, and a postcode inside a scored district is still some way from where that district was scored. Once the outlook has loaded, the first and fourth demos gain a "so far (live)" entry in their year lists, so you can see this season's Angus under the rule, and what the model is reading there today. The weather it runs on is Open-Meteo's analysis and forecast rather than the station records the model was fitted on, so its Hutton flag will disagree with BlightSpy's on some days; the model's probability moves little, because most of it comes from the calendar and the reports.
 
 ## The numbers
 
@@ -422,6 +438,23 @@ I went looking for a better humidity rule and there is one, worth six points of 
   .bl-canvas { display: block; width: 100%; border-radius: 0.75rem; border: 1px solid var(--gray-800); background: var(--gray-999_40); margin-top: 0.6rem; }
   .bl-map { max-width: 640px; margin-left: auto; margin-right: auto; }
   .bl-days button.on { border-color: var(--accent-dark); color: var(--accent-dark); }
+  .bl-lookup label { color: var(--gray-400); }
+  .bl-lookup input { font: inherit; padding: 0.35rem 0.8rem; border-radius: 999px; border: 1px solid var(--gray-700); background: var(--gray-900); color: var(--gray-0); min-width: 0; flex: 1 1 11rem; max-width: 16rem; font-family: var(--font-mono); }
+  .bl-lookup input:focus { outline: none; border-color: var(--accent-dark); }
+  .bl-lookup button[type="submit"] { border-color: var(--accent-dark); color: var(--accent-dark); }
+  .bl-lookup [data-role="lookup-msg"].bad { color: var(--accent-dark); }
+  .bl-map { cursor: crosshair; }
+  .bl-place { margin-top: 0.8rem; border: 1px solid var(--gray-800); border-radius: 0.75rem; padding: 0.9rem 1rem 0.8rem; background: var(--gray-999_40); }
+  .bl-place-head { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--gray-300); line-height: 1.5; }
+  .bl-place-head b { color: var(--gray-0); }
+  .bl-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.6rem; margin-top: 0.7rem; }
+  @media (max-width: 640px) { .bl-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .bl-tile { border: 1px solid var(--gray-800); border-radius: 0.6rem; padding: 0.6rem 0.75rem; display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+  .bl-tile b { font-family: var(--font-brand); font-size: 1.6rem; line-height: 1.1; color: var(--accent-dark); }
+  .bl-tile b.off { color: var(--gray-400); }
+  .bl-tile span { font-size: var(--text-sm); color: var(--gray-300); line-height: 1.4; }
+  .bl-place .bl-canvas { margin-top: 0.7rem; }
+  .bl-place-near { margin-top: 0.5rem; }
   .bl-rules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.4rem 1.2rem; margin-top: 0.7rem; font-family: var(--font-mono); font-size: var(--text-sm); color: var(--gray-300); }
   @media (max-width: 560px) { .bl-rules { grid-template-columns: minmax(0, 1fr); } }
   .bl-rules label { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
