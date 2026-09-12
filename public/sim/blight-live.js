@@ -60,7 +60,7 @@
 			if (stamp) stamp.innerHTML = 'fetched just now from <a href="https://github.com/samllbrown/blight-forecast/blob/master/live/latest.json">blight-forecast/live/latest.json</a>, written by <a href="https://github.com/samllbrown/blight-forecast/actions/workflows/live.yml">the daily action</a> at ' + L.generated.replace('T', ' ').slice(0, 16) + ' with the model fitted on ' + L.fitted_seasons[0] + ' to ' + L.fitted_seasons[1] + '; postcodes are looked up through <a href="https://postcodes.io">postcodes.io</a>';
 			if (scoreEl && L.score) {
 				var s = L.score;
-				scoreEl.innerHTML = '<b>' + L.season + ' so far</b> (1 May to ' + fmtDay(parseDay(s.through)) + ', ' + s.positives + ' district-days followed by a report): the Hutton alert was on for <b>' + pct(s.hutton_alert_share) + '</b> of district-days and caught <b>' + pct(s.hutton_catch) + '</b> of them (AUC ' + s.hutton_auc.toFixed(2) + '); the model ranks them at AUC <b>' + s.model_auc.toFixed(2) + '</b> and catches the same share on <b>' + pct(s.model_rate_for_hutton_catch) + '</b> of days.';
+				scoreEl.innerHTML = '<b>' + L.season + ' so far</b> (1 May to ' + fmtDay(parseDay(s.through)) + ', ' + s.positives + ' district-days followed by a report): the Hutton alert was on for <b>' + pct(s.hutton_alert_share) + '</b> of district-days and caught <b>' + pct(s.hutton_catch) + '</b> of them (AUC ' + s.hutton_auc.toFixed(2) + '); my model ranks them at AUC <b>' + s.model_auc.toFixed(2) + '</b> and catches the same share on <b>' + pct(s.model_rate_for_hutton_catch) + '</b> of days.';
 			} else if (scoreEl) scoreEl.textContent = '';
 			addSeasonToDemos(today);
 			wireLookup();
@@ -119,7 +119,8 @@
 			draw();
 			if (placeEl && !pt.clicked) placeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 		}
-		function binLabel(b) { return ['below the Hutton alert’s rate', 'above the Hutton alert’s rate', 'above the model’s 30% line', 'in the model’s top tenth'][b]; }
+		function binLabel(b) { return ['below the Hutton alert’s rate', 'above the Hutton alert’s rate', 'above the 30% line', 'in the top tenth'][b]; }
+		var RING = '<svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="#e9e6dd" stroke-opacity="0.7" stroke-width="1.5"/></svg>', DOT = '<svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><circle cx="10" cy="10" r="6" fill="#c561f6"/></svg>';
 		function drawPlace() {
 			if (!placeEl) return;
 			if (!sel) { placeEl.hidden = true; return; }
@@ -130,14 +131,14 @@
 			if (sel.own) head = '<b>' + where + '</b> is in district <b>' + d.oc + '</b>' + (L.names[d.oc] ? ', ' + L.names[d.oc] : '') + (sel.primary.km < 1 ? ', scored at the spot its past reports cluster around' : ', scored ' + Math.round(sel.primary.km) + ' km from here at the spot its past reports cluster around') + (pt.approx ? ' (postcodes.io didn’t answer, so this is the district’s centre)' : '') + '.';
 			else head = '<b>' + where + '</b> is in district ' + pt.oc + ', which has had no blight report since ' + L.fitted_seasons[0] + ' so it isn’t scored; the nearest scored district is <b>' + d.oc + '</b>, ' + Math.round(sel.primary.km) + ' km away.';
 			var tiles = p == null ? '<div class="bl-tile"><b class="off">no data</b><span>no weather for this district on this day</span></div>' :
-				'<div class="bl-tile"><b>' + pct(p, 2) + '</b><span>model’s chance of a report in ' + d.oc + ' in the seven days from ' + fmtDay(shown) + ', ' + binLabel(b) + ' (season average ' + pct(L.thresholds.base_rate, 1) + ')</span></div>' +
-				'<div class="bl-tile"><b class="' + (a ? '' : 'off') + '">' + (a ? 'on' : 'off') + '</b><span>Hutton alert, with ' + d.hd14[day].toFixed(0) + ' of the 14 days before meeting the criteria</span></div>' +
-				'<div class="bl-tile"><b>' + d.near100[day].toFixed(0) + '</b><span>reports within 100 km in the 28 days before</span></div>' +
-				'<div class="bl-tile"><b>' + d.prior.toFixed(1) + '</b><span>reports per season in ' + d.oc + ', ' + L.fitted_seasons[0] + ' to ' + L.fitted_seasons[1] + '</span></div>';
+				'<div class="bl-tile"><em>' + DOT + 'my model</em><b>' + pct(p, 2) + '</b><span>chance of a report in ' + d.oc + ' in the seven days from ' + fmtDay(shown) + ', ' + binLabel(b) + ' (season average ' + pct(L.thresholds.base_rate, 1) + ')</span></div>' +
+				'<div class="bl-tile"><em>' + RING + 'the Hutton alert</em><b class="' + (a ? '' : 'off') + '">' + (a ? 'on' : 'off') + '</b><span>the official warning, with ' + d.hd14[day].toFixed(0) + ' of the 14 days before meeting the criteria</span></div>' +
+				'<div class="bl-tile"><em>model input</em><b>' + d.near100[day].toFixed(0) + '</b><span>reports within 100 km in the 28 days before</span></div>' +
+				'<div class="bl-tile"><em>model input</em><b>' + d.prior.toFixed(1) + '</b><span>reports per season in ' + d.oc + ', ' + L.fitted_seasons[0] + ' to ' + L.fitted_seasons[1] + '</span></div>';
 			var near = sel.near.map(function (r) { var q = r.d.p[day]; return r.d.oc + ' (' + Math.round(r.km) + ' km) ' + (q == null ? 'no data' : pct(q, 2) + (r.d.alert[day] ? ', alert on' : '')); }).join(' · ');
 			placeEl.querySelector('[data-role="place-head"]').innerHTML = head;
 			placeEl.querySelector('[data-role="place-tiles"]').innerHTML = tiles;
-			placeEl.querySelector('[data-role="place-near"]').innerHTML = 'bars: the model’s chance of a report in ' + d.oc + ' in the seven days from each day (white box: Hutton alert on) · dashed lines, bottom to top: the Hutton alert’s rate, the model’s 30% line, the season average, the top tenth · grey lines: the nearest scored districts · shaded days are forecast · click a bar to pick that day<br>nearest other scored districts on ' + fmtDay(shown) + ': ' + near;
+			placeEl.querySelector('[data-role="place-near"]').innerHTML = 'bars: my model’s chance of a report in ' + d.oc + ' in the seven days from each day · white box: the Hutton alert is on that day · dashed lines, bottom to top: the Hutton alert’s rate, the model’s 30% line, the season average, the top tenth · grey lines: the nearest scored districts · shaded days are forecast · click a bar to pick that day<br>nearest other scored districts on ' + fmtDay(shown) + ': ' + near;
 			drawWeek();
 		}
 		function drawWeek() {
@@ -226,10 +227,10 @@
 			g.lineWidth = 1; g.fillStyle = COL.val; g.textAlign = 'left'; g.textBaseline = 'top'; g.font = '13px ui-monospace, Menlo, Consolas, monospace';
 			g.fillText(fmtDay(shown, true) + ' ' + shown.getUTCFullYear() + (day ? ' (forecast, +' + day + ')' : ''), 8, 8);
 			g.font = FONT; g.fillStyle = COL.text;
-			g.fillText(pct(on / (total || 1)) + ' of districts under a Hutton alert', 8, 26);
-			g.fillText(pct(above / (total || 1)) + ' above the model’s line', 8, 40);
+			g.fillText('Hutton alert on in ' + pct(on / (total || 1)) + ' of districts', 8, 26);
+			g.fillText('my model above its 30% line in ' + pct(above / (total || 1)), 8, 40);
 			g.fillText(recent + ' report' + (recent === 1 ? '' : 's') + ' in the three weeks before', 8, 54);
-			hud.innerHTML = '<span>fill: the model’s chance of a report here this week (grey below the Hutton alert’s rate, purple above the 30% line, bright in the top tenth) · white ring: Hutton alert on · orange rings: this season’s reports, fading over three weeks</span>';
+			hud.innerHTML = '<span>' + DOT + ' fill: my model’s chance of a report here this week (grey below the Hutton alert’s rate, purple above the 30% line, bright in the top tenth) · ' + RING + ' white ring: the Hutton alert is on · orange rings: this season’s reports, fading over three weeks</span>';
 			drawPlace();
 			drawStrip(today);
 		}
@@ -254,7 +255,7 @@
 			g.lineWidth = 1;
 			var ti = daysBetween(start, today); g.strokeStyle = COL.val; g.setLineDash([3, 3]); g.beginPath(); g.moveTo(X(ti) + dx / 2, pad.t); g.lineTo(X(ti) + dx / 2, h - pad.b); g.stroke(); g.setLineDash([]);
 			g.fillStyle = COL.text; g.textAlign = 'left'; g.textBaseline = 'top'; g.fillText('today', X(ti) + dx / 2 + 4, pad.t);
-			g.fillText('share of districts: under Hutton alert, above the model’s 30% line · bars: reports that day (peak ' + maxRep + ')', pad.l + 4, pad.t + 12);
+			g.fillText('share of districts with the Hutton alert on (purple) and with my model above its 30% line (bright) · bars: reports that day (peak ' + maxRep + ')', pad.l + 4, pad.t + 12);
 		}
 		// Give the season and thoughts demos a "<year> so far" entry built from the live tracks.
 		function addSeasonToDemos(today) {

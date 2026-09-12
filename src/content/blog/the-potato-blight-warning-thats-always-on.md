@@ -170,7 +170,12 @@ The research model scores the day it is on, where BlightSpy looks eight days ahe
 
 ## This week, live
 
-This map comes from my own service rather than from BlightSpy, and the page fetches it fresh each time it loads. Every morning a GitHub Action in the [blight-forecast](https://github.com/samllbrown/blight-forecast) repo pulls this season's reports from the Fight Against Blight API, pulls a fortnight back and eight days ahead of hourly weather for all 525 districts from Open-Meteo, builds the same features as the research panel, scores every district for today and the week ahead with the model fitted on 2006 to 2025, and commits the result as [one JSON file](https://github.com/samllbrown/blight-forecast/blob/master/live/latest.json). Pick a day, type a postcode (or just a district like DD8) to read your own district off it, or click a dot on the map, and treat it as an experiment on public data rather than spray advice.
+This map comes from my own service rather than from BlightSpy, and the page fetches it fresh each time it loads. Every morning a GitHub Action in the [blight-forecast](https://github.com/samllbrown/blight-forecast) repo pulls this season's reports from the Fight Against Blight API, pulls a fortnight back and eight days ahead of hourly weather for all 525 districts from Open-Meteo, builds the same features as the research panel, scores every district for today and the week ahead with the model fitted on 2006 to 2025, and commits the result as [one JSON file](https://github.com/samllbrown/blight-forecast/blob/master/live/latest.json). It shows two different things side by side, so here is what each one is.
+
+<div class="fc-methods bl-two">
+  <div><b><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="#e9e6dd" stroke-opacity="0.7" stroke-width="1.5"/></svg>The Hutton alert, the official warning</b><span>A switch. It is on for a district when two days running had a minimum of 10°C and six hours at 90% humidity, and I hold it on for the 14 days after, the same rule the rest of the page scores. It says the weather here has been right for blight, and nothing about how likely a report actually is.</span></div>
+  <div><b><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="10" cy="10" r="6" fill="#c561f6"/></svg>My model, the chance of a report</b><span>A number. The chance that a scout reports blight in this district in the next seven days, read from what week it is, the reports nearby, the district's history and the weather. Because it is a number rather than a switch, the map draws lines through it: the 30% line is the level that would put 30% of district-days on alert, the Hutton alert's rate is the level that would match its 61%, and the top tenth is the brightest.</span></div>
+</div>
 
 <div class="sheepdog" data-blight-live data-src="https://raw.githubusercontent.com/samllbrown/blight-forecast/master/live/latest.json">
   <form class="sheepdog-controls bl-lookup" data-role="lookup" autocomplete="off">
@@ -197,7 +202,7 @@ This map comes from my own service rather than from BlightSpy, and the page fetc
   <div class="sheepdog-hud"><span class="fc-tally" data-role="stamp"></span></div>
 </div>
 
-The map is the same as the earlier one with the model's view painted over it: the Hutton ring is on nearly everywhere, and the model's colour is concentrated where reports have been arriving. The dots are the 525 postcode districts that have reported an outbreak since 2006, each scored at the spot its reports cluster around, so a postcode in a district with no history gets its nearest scored district and the distance to it, and a postcode inside a scored district is still some way from where that district was scored. Once the outlook has loaded, the first and fourth demos gain a "so far (live)" entry in their year lists, so you can see this season's Angus under the rule, and what the model is reading there today. The weather it runs on is Open-Meteo's analysis and forecast rather than the station records the model was fitted on, so its Hutton flag will disagree with BlightSpy's on some days; the model's probability moves little, because most of it comes from the calendar and the reports.
+Pick a day, type a postcode (or just a district like DD8) to read your own district off it, or click a dot on the map, and treat it as an experiment on public data rather than spray advice. The map is the same as the earlier one with the model's view painted over it: the Hutton ring is on nearly everywhere, and the model's colour is concentrated where reports have been arriving. The dots are the 525 postcode districts that have reported an outbreak since 2006, each scored at the spot its reports cluster around, so a postcode in a district with no history gets its nearest scored district and the distance to it, and a postcode inside a scored district is still some way from where that district was scored. Once the outlook has loaded, the first and fourth demos gain a "so far (live)" entry in their year lists, so you can see this season's Angus under the rule, and what the model is reading there today. The weather it runs on is Open-Meteo's analysis and forecast rather than the station records the model was fitted on, so its Hutton flag will disagree with BlightSpy's on some days; the model's probability moves little, because most of it comes from the calendar and the reports.
 
 ## The numbers
 
@@ -450,6 +455,8 @@ I went looking for a better humidity rule and there is one, worth six points of 
   .bl-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.6rem; margin-top: 0.7rem; }
   @media (max-width: 640px) { .bl-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .bl-tile { border: 1px solid var(--gray-800); border-radius: 0.6rem; padding: 0.6rem 0.75rem; display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+  .bl-tile em { font-style: normal; font-family: var(--font-mono); font-size: var(--text-sm); color: var(--gray-400); display: flex; align-items: center; gap: 0.35rem; }
+  .bl-tile em svg { flex: none; }
   .bl-tile b { font-family: var(--font-brand); font-size: 1.6rem; line-height: 1.1; color: var(--accent-dark); }
   .bl-tile b.off { color: var(--gray-400); }
   .bl-tile span { font-size: var(--text-sm); color: var(--gray-300); line-height: 1.4; }
@@ -494,6 +501,10 @@ I went looking for a better humidity rule and there is one, worth six points of 
   @media (max-width: 640px) { .fc-methods { grid-template-columns: minmax(0, 1fr); } }
   .fc-methods > div { border: 1px solid var(--gray-800); border-radius: 0.75rem; padding: 0.9rem 1rem; background: var(--gray-999_40); display: flex; flex-direction: column; gap: 0.4rem; }
   .fc-methods b { font-family: var(--font-brand); font-size: 1.1rem; color: var(--gray-0); }
+  .fc-methods.bl-two { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 1rem 0 0.75rem; }
+  @media (max-width: 640px) { .fc-methods.bl-two { grid-template-columns: minmax(0, 1fr); } }
+  .fc-methods.bl-two b { display: flex; align-items: center; gap: 0.5rem; }
+  .fc-methods.bl-two b svg { flex: none; }
   .fc-methods span { font-size: var(--text-sm); color: var(--gray-300); line-height: 1.5; }
   .fc-signals { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; margin: 1.25rem 0; }
   @media (max-width: 860px) { .fc-signals { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
