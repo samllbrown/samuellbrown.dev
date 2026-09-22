@@ -3,6 +3,7 @@ title: Picking the puppy
 publishDate: 2026-08-31 00:00:00
 description: |
   Evolving the robot collie worked, but some of the runs only worked because they got lucky. So I trained two hundred and twenty of them, three different ways, to find out whether you can tell early on which runs are going to come good. There's a game in here where you can have a go at picking one yourself.
+series: collie
 tags:
   - Farming
   - Simulation

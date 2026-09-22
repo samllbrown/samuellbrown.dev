@@ -10,15 +10,18 @@ tags:
   - Simulation
 ---
 
-The thing I took away from [the sheepdog post](/blog/the-collie-is-the-algorithm/) was that the two rules doing all the work fitted on a postcard. This time I wanted the *learning* to fit on a postcard as well, and I didn't want to do the usual thing, which is a pile of weights, a loss function and gradient descent. That works, everybody knows it works, and it doesn't tell you much about what remembering actually is.
+Can a learning rule fit on a postcard? The two rules in [the sheepdog post](/blog/the-collie-is-the-algorithm/) did, and I wanted the learning to as well, without the usual pile of weights, a loss function and gradient descent. So I built the odd one: in 1982 John Hopfield wrote down a network that learns a picture by looking at it once, with a rule from 1949 (neurons that fire together wire together), and remembers by rolling downhill. No loss function and no training loop.
 
-So I built the odd one. In 1982 a physicist called John Hopfield wrote down a network of neurons that behaves like a lump of magnetic material. It learns a picture by looking at it once, with a rule from 1949 that says neurons that fire together wire together, and it remembers by rolling downhill. It has no loss function and no training loop. It's also famously bad at its job, and everyone has known exactly how bad since 1985. Hopfield got half of the 2024 Nobel Prize in Physics for it, which is a strange thing to be able to say about a model that can't hold three of my pictures. I wanted to see that for myself, so I built it, drew some pictures for it to remember, and kept going until it broke, then followed the fixes to see where they led. They led somewhere I didn't expect.
+It's also famously bad at its job, and won half of the 2024 Nobel Prize in Physics anyway. I built it, drew some pictures for it, kept going until it broke, and followed the fixes to see where they led, which turned out to be the attention block in a transformer.
 
 ## The model
 
-There are 400 neurons in a 20 by 20 grid. Each one is either on (+1) or off (−1), and every neuron is wired to every other one with a weight that can be positive or negative. That's the whole network: a picture, and a 400 by 400 table of numbers.
-
-Storing a picture is one line. For every pair of neurons, if they're both on or both off in the picture, nudge the weight between them up. If one is on and one is off, nudge it down.
+<div class="fc-flow">
+  <div class="fc-step"><b>400</b><span>neurons in a 20 by 20 grid, each on (+1) or off (−1)</span></div>
+  <div class="fc-step"><b>160,000</b><span>weights, one between every pair of neurons, positive or negative</span></div>
+  <div class="fc-step"><b>1 line</b><span>to store a picture: nudge each weight up if the pair agree, down if they don't</span></div>
+  <div class="fc-step"><b>1 line</b><span>to recall one: each neuron goes with the majority of its neighbours until nobody flips</span></div>
+</div>
 
 ```js title="hebb.js"
 // Store a picture x (an array of ±1). This is the whole learning rule.
@@ -27,21 +30,24 @@ for (let i = 0; i < n; i++)
     if (i !== j) W[i][j] += x[i] * x[j] / n;
 ```
 
-Recalling is also one line. Pick a neuron at random, add up what its neighbours are telling it (each neighbour's state times the weight between them), and go with the majority. Keep doing that until nothing changes.
-
 ```js title="recall.js"
 // Update one neuron. Repeat, in random order, until nobody flips.
 const h = W[i].reduce((sum, w, j) => sum + w * x[j], 0);
 x[i] = h > 0 ? 1 : h < 0 ? -1 : x[i];
 ```
 
-The reason it works is the bit that came from physics. You can write down a number for any state of the network, its **energy**, and it turns out that a neuron going with the majority can only ever lower that number, never raise it. So the network has to stop somewhere. The learning rule digs a valley in the energy landscape at every picture you store, and recall is just the network rolling down into whichever valley it starts nearest. A scribbled-on sheep is halfway up the side of the sheep valley, and it rolls to the bottom.
+The physics is why it works. Every state of the network has an **energy**, and a neuron going with the majority can only ever lower it, so the network has to stop somewhere. Storing a picture digs a valley in the energy landscape at that picture, and recall is the network rolling into whichever valley it starts nearest. A scribbled-on sheep is halfway up the side of the sheep valley.
 
 ## Storing pictures
 
-This one starts with a sheep and a dog already stored, and a scribbled-on sheep on the grid. Press **Recall** and watch the energy on the right fall. The purple flashes are neurons changing their mind. The stripy square is the whole memory, all 160,000 weights, with orange for "these two agree" and purple for "these two disagree".
+It starts with a sheep and a dog stored and a scribbled-on sheep on the grid. The stripy square is all 160,000 weights (orange where two neurons agree, purple where they disagree), the chart is the energy falling, and the purple flashes are neurons changing their mind.
 
-Then try **Rub out half**, and Recall again. Then draw your own picture on the grid (click and drag) and **Remember this**. And then, because this is the interesting bit, click the heart in the library, Remember that too, load the sheep from the memories row, scribble on it and Recall.
+<div class="demo-steps"><span>Try this</span><ol>
+  <li><b>Recall</b> and watch the sheep come back.</li>
+  <li><b>Rub out half</b>, then Recall again.</li>
+  <li>Draw on the grid, <b>Remember this</b>, scribble on it, Recall.</li>
+  <li>Load the heart from the library, Remember it, then try the sheep again.</li>
+</ol></div>
 
 <div class="hop" data-hopfield="memory" data-preload="sheep,dog">
   <div class="hop-main">
@@ -62,24 +68,32 @@ Then try **Rub out half**, and Recall again. Then draw your own picture on the g
     <span class="hop-stats" data-role="energy">E = 0</span>
   </div>
   <div class="hop-controls">
-    <button type="button" data-action="recall">Recall</button>
-    <button type="button" data-action="scribble">Scribble on it</button>
+    <button type="button" class="demo-primary" data-action="recall">Recall</button>
     <button type="button" data-action="erase">Rub out half</button>
+    <button type="button" data-action="scribble">Scribble on it</button>
     <button type="button" data-action="remember">Remember this</button>
     <button type="button" data-action="clear">Blank</button>
     <button type="button" data-action="forget">Forget everything</button>
   </div>
 </div>
 
-The sheep doesn't come back. You get something that's mostly sheep with the heart bleeding into it, and it's the same the other way round. Try the house instead of the heart and all three work. Four pictures never works whatever you pick. That's not a bug. It's a 400-neuron network with a 400 by 400 memory, and which pictures it can hold together depends on how alike they are. Understanding why took most of the time I spent on this.
-
-Every picture you store is added on top of the last one in the same table. When the network tries to recall the sheep, the weights from the sheep pull each neuron the right way, and the weights from the dog and the heart pull it in some other direction. Those other pulls are noise, and they add up. With random pictures, where every pixel is a coin flip, the noise stays small until you've stored about 14% as many pictures as you have neurons, which is 55 here. My pictures are nothing like random: they're mostly dark background with a light blob in the middle, so the sheep and the heart agree on about four fifths of their pixels before you've stored anything. The "noise" from the heart isn't noise at all, it's pulling in a definite direction, and it only takes a third picture to tip it over.
+With the heart stored the sheep doesn't come back: you get mostly sheep with the heart bleeding into it, and the same the other way round. The house instead of the heart is fine, and four pictures never work whatever you pick. Every picture is added into the same table, so when the network recalls the sheep, the weights from the dog and the heart pull each neuron somewhere else. With random pictures those pulls stay small until you've stored about 14% as many pictures as you have neurons, 55 here. Mine are a light blob on a dark background, so the sheep and the heart already agree on four fifths of their pixels, and the "noise" from the heart pulls in one definite direction.
 
 ## Overfilling it
 
-To see the 14% cliff properly you need random pictures, which just look like static. This one keeps adding random pictures five at a time, and after each batch it scribbles on a sample of the stored ones and checks whether they come back exactly. The dashed line is where the theory says it should fall over. **Run to 120** does the lot.
+Random pictures, which look like static, are what that 14% was worked out for. This one adds five at a time, scribbles on a sample of the stored ones after each batch, and checks whether they come back exactly. The dashed line is where the theory says it falls over.
 
-Once you've watched the Hebb rule fall off its cliff, switch the rule and run again. The other two curves stay on the chart so you can compare.
+<div class="fc-methods">
+  <div><b>Hebb (1949)</b><span>The rule above. Needs only the picture in front of it, and can forget it afterwards. Falls over at about 55 pictures here.</span></div>
+  <div><b>Storkey (1997)</b><span>Hebb with a correction: before storing, check what the network already thinks about each pixel and store only the part it doesn't know. Roughly triples the capacity.</span></div>
+  <div><b>Pseudo-inverse (1985)</b><span>The cheat. Takes every picture stored so far, inverts a matrix and sets the weights directly, so it needs the whole history back every time. Holds about half as many pictures as neurons.</span></div>
+</div>
+
+<div class="demo-steps"><span>Try this</span><ol>
+  <li><b>Run to 120</b> and watch the Hebb rule fall off its cliff.</li>
+  <li>Switch the rule to <b>Storkey</b> and Run again. The old curve stays for comparison.</li>
+  <li>Then <b>Pseudo-inverse</b>.</li>
+</ol></div>
 
 <div class="hop" data-hopfield="capacity">
   <div class="hop-main">
@@ -94,9 +108,9 @@ Once you've watched the Hebb rule fall off its cliff, switch the rule and run ag
     <span class="hop-stats" data-role="score">0 stored</span>
   </div>
   <div class="hop-controls">
+    <button type="button" class="demo-primary" data-action="run">Run to 120</button>
     <label>Rule <select data-role="rule"><option value="hebb">Hebb (1949)</option><option value="storkey">Storkey (1997)</option><option value="pinv">Pseudo-inverse (1985)</option></select></label>
     <button type="button" data-action="add">Add 5</button>
-    <button type="button" data-action="run">Run to 120</button>
     <button type="button" data-action="reset">Reset</button>
     <button type="button" data-action="clear">Clear chart</button>
     <label><input type="checkbox" data-role="pictures" /> start with the six pictures</label>
@@ -104,24 +118,27 @@ Once you've watched the Hebb rule fall off its cliff, switch the rule and run ag
   <div class="hop-legend" data-role="legend"></div>
 </div>
 
-The **Storkey** rule is Hebb's rule with a correction. Before it stores a new picture it checks what the network already thinks about each pixel, and only stores the part of the new picture that the network doesn't already know. It still only needs things a neuron could plausibly know, its own state and its own input, and here it roughly triples the capacity.
-
-The **pseudo-inverse** is the cheat. It takes every picture stored so far, inverts a matrix, and sets the weights directly so that every one of them is a valley. In theory it can store as many pictures as it has neurons, and in practice, if you want a scribbled copy to come back, about half that. But it isn't learning in any sense a neuron could do: every time you add a picture it needs all the old ones back to recompute the whole table. It's the difference between a rule of thumb and looking the answer up.
-
-If you tick **start with the six pictures**, the sample panel always shows those six first, and you can see the Hebb rule losing them almost immediately while the other two rules hold on.
+Tick **start with the six pictures** and the sample panel shows those first, so you can watch the Hebb rule lose them almost immediately while the other two hold on.
 
 ## The version that's secretly a transformer
 
-The obvious question is whether you can dig the valleys steeper so they don't blur into each other. In 2016 Krotov and Hopfield did that, and in 2020 a group in Linz took it to its limit and noticed something. If you make the energy exponential in how well the state matches each stored picture, the capacity stops being 14% of the neurons and becomes exponential in the number of neurons. And the recall update for that network is
+Can you dig the valleys steeper so they don't blur into each other? Krotov and Hopfield did in 2016, and in 2020 a group in Linz took it to its limit: make the energy exponential in how well the state matches each stored picture, and the capacity stops being 14% of the neurons and becomes exponential in the number of neurons. The recall update for that network is
 
 ```js title="dense-recall.js"
 // Ξ is the list of stored pictures, x is the state, β is a sharpness.
 x = Ξᵀ · softmax(β · Ξ · x)
 ```
 
-which is one step of the attention mechanism in a transformer. The state is the query, the stored pictures are the keys and the values, and β is the scaling factor. That's the result that made me want to build this: the memory model from the 1982 paper, pushed to its limit, is the block that large language models are made of.
+which is one step of the attention mechanism in a transformer. The state is the query, the stored pictures are the keys and the values, and β is the scaling factor. That's the result that made me want to build this.
 
-This demo has all six pictures stored plus, if you tick the box, 200 random ones, which the Hebb rule couldn't get near. The panel on the right shows where the attention is going, so you can watch it decide. The slider is β. Turn it right down and Recall: you get a blend of all the memories, because the softmax is spread across all of them. Turn it up and it snaps to one.
+All six pictures are stored, and the panel on the right shows which memories the network is reading as it decides. The slider is β.
+
+<div class="demo-steps"><span>Try this</span><ol>
+  <li><b>Recall</b> and watch the attention settle on the sheep.</li>
+  <li>Drag <b>β</b> to the left and Recall: you get a blend of every memory.</li>
+  <li>Drag it to the right and Recall: it snaps to one.</li>
+  <li>Tick <b>also store 200 random pictures</b>, which the Hebb rule couldn't get near, and Recall again.</li>
+</ol></div>
 
 <div class="hop" data-hopfield="dense">
   <div class="hop-main">
@@ -138,24 +155,24 @@ This demo has all six pictures stored plus, if you tick the box, 200 random ones
     <span class="hop-stats" data-role="beta-out">β</span>
   </div>
   <div class="hop-controls">
-    <button type="button" data-action="recall">Recall</button>
+    <button type="button" class="demo-primary" data-action="recall">Recall</button>
+    <label class="hop-slider">β <input type="range" data-role="beta" min="-3" max="-0.7" step="0.05" value="-1.3" /></label>
     <button type="button" data-action="scribble">Scribble on it</button>
     <button type="button" data-action="erase">Rub out half</button>
     <button type="button" data-action="clear">Blank</button>
-    <label class="hop-slider">β <input type="range" data-role="beta" min="-3" max="-0.7" step="0.05" value="-1.3" /></label>
     <label><input type="checkbox" data-role="noise" /> also store 200 random pictures</label>
   </div>
 </div>
 
-Something has been given up here, and it's worth being clear about what. The original network learned: it squashed every picture it had seen into one table of weights, and a neuron only needed its neighbours to update. This one doesn't learn anything. The stored pictures *are* the weights, kept as they were, and recall is a soft lookup against all of them. It remembers more because it's stopped trying to compress. Whether you think attention is a memory or a memory is attention comes down to which paper you read first.
+Something has been given up here. The original network learned: it squashed every picture it had seen into one table of weights, and a neuron only needed its neighbours to update. This one keeps the pictures as they are, and recall is a soft lookup against all of them. It remembers more because it has stopped trying to compress.
 
 ## The numbers
 
-Everything below was measured with the same code that runs the demos, on a 400-neuron network, and each point is the average of three seeded runs. "Recalled" means the network was given a copy of a stored pattern with 10% of the pixels flipped and came back with the original exactly, every pixel. The script is in the repo if you want to rerun it.
+Everything below was measured with the same code that runs the demos, on a 400-neuron network, each point the average of three seeded runs. "Recalled" means the network was given a copy with 10% of the pixels flipped and came back with the original exactly.
 
 ### Where the cliff is
 
-The theory (Amit, Gutfreund and Sompolinsky, 1985) says the Hebb rule stores at most 0.138 patterns per neuron, which is 55 for this network. That number comes from spin-glass physics and it's for random patterns, in the limit of an infinitely large network, and it allows the recalled pattern to have a couple of percent of its pixels wrong. I measured something stricter, so I expected to land a bit short of it.
+The theory (Amit, Gutfreund and Sompolinsky, 1985) puts the Hebb limit at 0.138 patterns per neuron, 55 here, for random patterns in an infinitely large network, and it allows a couple of percent of pixels wrong. I measured exact recall, so I expected to land a bit short.
 
 <figure class="hop-figure">
 <svg class="hop-svg" viewBox="0 0 640 300" role="img" aria-label="Fraction of stored random patterns recalled exactly from a 10% corruption, by learning rule, n = 400" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="12">
@@ -312,9 +329,7 @@ The theory (Amit, Gutfreund and Sompolinsky, 1985) says the Hebb rule stores at 
 <figcaption>Exact recall from a 10% scribble against the number of random patterns stored, for the three rules. n = 400, mean of three seeds, 40 patterns sampled per point. Hover a point for its value.</figcaption>
 </figure>
 
-The Hebb rule drops below 50% at 50 patterns and is effectively gone by 70. Storkey holds 100% to 120 and drops below 50% at 160. The pseudo-inverse holds 100% to 160 and then collapses at about 220, which is 0.55n, where the stored patterns stop being linearly independent enough for the inverse to be well behaved.
-
-The most satisfying result in the whole thing is that you don't need spin-glass physics to predict my Hebb curve. When the network is sitting on a stored pattern, each neuron's input is the right answer plus the noise from every other stored pattern, and for random patterns that noise is roughly Gaussian with variance p/n. The chance a single pixel flips is then ½·erfc(√(n/2p)), and the chance that *none* of the 400 pixels flip is e<sup>−λ</sup> where λ is the expected number of flips. That back-of-the-envelope estimate matches the measurement at every point:
+You don't need spin-glass physics to predict the Hebb curve. Sitting on a stored pattern, each neuron's input is the right answer plus roughly Gaussian noise from the other patterns, so the chance that none of the 400 pixels flip is e<sup>−λ</sup>, where λ is the expected number of flips. It matches at every point:
 
 <div class="hop-table-wrap"><table class="hop-table">
 <thead><tr><th class="num">patterns</th><th class="num">wrong pixels expected (λ)</th><th class="num">predicted e<sup>−λ</sup></th><th class="num">measured</th></tr></thead>
@@ -327,7 +342,7 @@ The most satisfying result in the whole thing is that you don't need spin-glass 
 <tr><td class="num">70</td><td class="num">3.37</td><td class="num">3%</td><td class="num">1%</td></tr>
 </tbody></table></div>
 
-Which tells you something about what "capacity" means. At 55 patterns the network is only getting one or two pixels wrong on average. The 0.138 figure isn't where the memory becomes useless, it's where those one or two wrong pixels start knocking over their neighbours and the whole thing avalanches. If you allow the answer to be within 2% (8 pixels), the network is still getting 84% at 50 patterns and 60% at 60, and the drop-off is where the theory puts it.
+So 0.138 isn't where the memory becomes useless, it's where one or two wrong pixels start knocking over their neighbours. Allow 2% wrong and the cliff sits where the theory puts it, and gets sharper as the network grows:
 
 <figure class="hop-figure">
 <svg class="hop-svg" viewBox="0 0 640 300" role="img" aria-label="Hebb rule at three network sizes: recall (allowing 2% wrong pixels) against patterns per neuron" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="12">
@@ -399,11 +414,9 @@ Which tells you something about what "capacity" means. At 55 patterns the networ
 <figcaption>Hebb rule at three sizes, with the recall counted as correct if at most 2% of the pixels are wrong. The x-axis is patterns per neuron. Bigger networks have a sharper cliff, closer to 0.138.</figcaption>
 </figure>
 
-Running the same test at n = 100, 400 and 900 shows the cliff sharpening as the network grows. At 900 neurons it's still at 98% at 0.12 patterns per neuron and down to 34% by 0.16. The 100-neuron network is soft everywhere, still getting a third of its patterns back at 0.2. So the number is a limit, and a 400-neuron toy is only roughly there.
-
 ### The basins shrink before the cliff
 
-Capacity is the wrong thing to worry about anyway, because a memory you can only recall from a perfect copy isn't a memory. What matters is how much damage the network can undo, and that gets worse well before the patterns stop being stable.
+A memory you can only recall from a perfect copy isn't a memory, and how much damage the network can undo gets worse well before the patterns stop being stable.
 
 <figure class="hop-figure">
 <svg class="hop-svg" viewBox="0 0 640 300" role="img" aria-label="How much corruption the Hebb rule can undo, for 10, 30 and 50 stored patterns, n = 400" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="12">
@@ -461,11 +474,11 @@ Capacity is the wrong thing to worry about anyway, because a memory you can only
 <figcaption>How badly scribbled a pattern can be and still come back exactly, for 10, 30 and 50 stored patterns. n = 400, Hebb rule.</figcaption>
 </figure>
 
-With 10 patterns stored the network recovers from having **40%** of its pixels flipped, 97% of the time. That surprised me. Flip 45% and it's down to 23%, and at 50% you've given it a coin toss, so it goes to whichever memory is nearest by luck. With 30 stored it's fine to 30% and gone by 40%. With 50 stored it only gets 40% back from a perfect copy, because most of the patterns aren't stable any more.
+With 10 stored it recovers from 40% of its pixels flipped, which surprised me. With 50 stored it only gets 40% back from a perfect copy, because most of the patterns aren't stable any more.
 
 ### From nowhere in particular
 
-If you start the network from a random state instead of a scribbled memory, it still rolls downhill, but there's no guarantee it lands in a valley you dug. With 20 patterns stored, well under capacity, I ran 2,000 random starts:
+Start the network from a random state instead of a scribbled memory and it still rolls downhill, but not necessarily into a valley you dug. With 20 patterns stored, 2,000 random starts ended at 859 different states:
 
 <div class="hop-table-wrap"><table class="hop-table">
 <thead><tr><th>ended up at</th><th class="num">share</th></tr></thead>
@@ -476,11 +489,11 @@ If you start the network from a random state instead of a scribbled memory, it s
 <tr><td>something else</td><td class="num">2%</td></tr>
 </tbody></table></div>
 
-Half the time it invents a memory that was never stored, by blending three of them, and a quarter of the time it produces a photographic negative. Those 2,000 starts ended at 859 different states, from a network holding 20 pictures. The inverse ones are unavoidable: the energy of a state and its negative are identical under this rule, so every valley you dig comes with a mirror-image valley for free. The mixtures are the "spurious states" from the literature, and one of the things a better learning rule is judged on is how many of them it adds. It also took an average of 11 sweeps to settle from a random start, against two from a scribbled memory, which is the difference between being halfway up one valley and being on a ridge between several.
+Half the time it invents a memory by blending three of them, and a quarter of the time it produces a photographic negative, which is unavoidable because a state and its inverse have exactly the same energy under this rule.
 
 ### Pictures are worse than noise
 
-The six pictures are the numbers that made me understand the whole thing. The average overlap between two random 400-pixel patterns is 0.04, which is the noise the theory assumes. The average overlap between two of my pictures is **0.44**, and the sheep and the heart agree on 82% of their pixels. So each picture is a fully-fledged signal pulling every other picture towards it, not noise.
+Two random 400-pixel patterns overlap by 0.04 on average, which is the noise the theory assumes. Two of my pictures overlap by 0.44, and the sheep and the heart agree on 82% of their pixels. Which sets hold, in library order:
 
 <div class="hop-table-wrap"><table class="hop-table">
 <thead><tr><th>pictures stored (in library order)</th><th class="num">Hebb</th><th class="num">Storkey</th><th class="num">Pseudo-inverse</th></tr></thead>
@@ -492,11 +505,11 @@ The six pictures are the numbers that made me understand the whole thing. The av
 <tr><td>+ sun</td><td class="num">0 / 6</td><td class="num">3 / 6 (dog 55%, tree 80%)</td><td class="num">6 / 6</td></tr>
 </tbody></table></div>
 
-Under the Hebb rule every pair of pictures is fine, 12 of the 20 possible triples are fine, and no set of four works at all. Which triples fail is about overlap, not count: sheep, dog and house is solid, and sheep, dog and heart loses the sheep and the heart entirely, because those two are the same blob in the same place. Storkey gets to four and then loses the sheep to the heart as well. Only the pseudo-inverse, which is allowed to look at all the pictures together, holds all six, and that's because the pictures are only six vectors in a 400-dimensional space, so they're trivially independent and the inverse doesn't care how similar they look.
+Which triples fail is about overlap, not count: sheep, dog and house is solid, and sheep, dog and heart loses both blobs because they sit in the same place. Only the pseudo-inverse holds all six, and that's because six vectors in a 400-dimensional space are trivially independent.
 
 ### The attention version
 
-The dense network is a different animal. With β = 0.1 it stores 4,000 random patterns in 400 neurons and recovers every one of them from a 30% scribble, which the Hebb rule can't do for 50. Where it fails is when the query gets close to random: at 45% flipped almost nothing works, because a pattern that shares 55% of its pixels with the answer only barely prefers it to a stranger.
+With β = 0.1 the dense network stores 4,000 random patterns in 400 neurons and recovers every one from a 30% scribble. It only fails once the query is nearly random:
 
 <div class="hop-table-wrap"><table class="hop-table">
 <thead><tr><th class="num">patterns stored</th><th class="num">10% flipped</th><th class="num">30% flipped</th><th class="num">40% flipped</th><th class="num">45% flipped</th></tr></thead>
@@ -507,7 +520,7 @@ The dense network is a different animal. With β = 0.1 it stores 4,000 random pa
 <tr><td class="num">4,000</td><td class="num">100%</td><td class="num">100%</td><td class="num">0%</td><td class="num">0%</td></tr>
 </tbody></table></div>
 
-The sharpness β behaves like a switch rather than a dial. On the six pictures plus 200 random ones, recall from a 30% scribble is 0% at β = 0.02 and 100% at β = 0.05, with nothing in between, and the top memory's share of the attention goes from 1% to 100% at the same point. Below the switch the softmax is spread across everything and you get the blurred average from the demo. Above it the softmax is a hard lookup. In a transformer the same knob is the scaling in front of the softmax, and this is a picture of what sits at either end of it.
+β behaves like a switch rather than a dial. On the six pictures plus 200 random ones, recall from a 30% scribble is 0% at β = 0.02 and 100% at β = 0.05, and the top memory's share of the attention jumps from 1% to 100% at the same point. In a transformer the same knob is the scaling in front of the softmax.
 
 ### What each rule costs
 
@@ -520,25 +533,65 @@ The sharpness β behaves like a switch rather than a dial. On the six pictures p
 <tr><td>Dense</td><td>nothing, it keeps the pictures</td><td class="num">thousands</td><td class="num">0.008</td></tr>
 </tbody></table></div>
 
-The pattern in that table is the point of the post. Every step up in capacity is paid for with locality. Hebb needs only the picture in front of it and can forget it afterwards; that's a rule a neuron could run. Storkey needs to know what it already believes. The pseudo-inverse needs the whole history back. The dense network needs nothing because it does no compression at all: the "store" is a copy, and every recall is a scan of everything it's ever seen. It's the fastest to store and the only one whose recall cost grows with the number of memories.
+Every step up in capacity is paid for with locality. Hebb needs only the picture in front of it, Storkey needs what it already believes, the pseudo-inverse needs the whole history back, and the dense network needs nothing because it does no compression: the store is a copy, and every recall is a scan of everything it has ever seen.
 
 ### What I'd want to check before trusting any of this
 
-- Everything is at n = 400 except the one size comparison. The theory is a large-n statement and my network is small, so the cliffs are softer than they'd be in a real system.
-- "Corrupted" here always means randomly flipped pixels. Real damage is structured: a block missing, a shape shifted a pixel to the right. The **Rub out half** button is the only structured case I tried, and the network handles it well because the intact half is a strong enough cue, but I haven't measured it.
-- I used asynchronous updates in random order. Synchronous updates (everyone at once) can oscillate between two states forever, which is a well-known difference and would change the numbers.
-- Three seeds and 40 samples per point is enough to see the shape and not enough to trust the second digit. The Poisson agreement is closer than I'd expect at that sample size, so some of it is luck.
-- The pictures are mine and there are six of them. A different set with less overlap would make the Hebb rule look better; I checked that by noting which triples fail, but I haven't tried, say, letters.
-- The timings are one laptop, one run, unoptimised JavaScript, and they compare rules whose costs scale differently with p, so read them as ratios at p = 100 and nothing more.
+- Everything is at n = 400 except the one size comparison, and the theory is a large-n statement, so my cliffs are softer than a real system's would be.
+- "Corrupted" always means randomly flipped pixels. Structured damage (a block missing, a shape shifted a pixel) is only covered by **Rub out half**, which the network handles well, but I haven't measured it.
+- Three seeds and 40 samples per point is enough to see the shape and not the second digit, and the Poisson agreement is closer than that sample size deserves.
+- The pictures are mine and there are six of them. A set with less overlap would make the Hebb rule look better.
 
 ## What I took from it
 
-The learning rule fitted on a postcard, and so did the recall rule, and so did the reason it works. That was the aim. What I didn't expect was how much the failures taught me. The network isn't bad at remembering, it's bad at remembering *similar things*, and every improvement to it is some version of paying attention to what it already knows before adding more. That's true of the Storkey rule, it's true of the pseudo-inverse, and it's true of the attention block in a transformer, which turned out to be sitting at the end of the road.
+<div class="fc-takeaways">
+  <div class="fc-take"><b>55</b><span>Where the Hebb rule falls over on random pictures, 0.138 per neuron. It's one or two wrong pixels avalanching, not the memory going.</span>
+<svg viewBox="0 0 220 50" role="img" aria-label="Hebb ~50; Storkey ~160; Pseudo-inv. ~220" font-size="9">
+<text x="0" y="11" fill="#8490b5">Hebb</text><rect x="72" y="2" width="25" height="11" rx="2" fill="#c561f6"><title>Hebb: ~50</title></rect><text x="101" y="11" fill="#e9e6dd">~50</text>
+<text x="0" y="27" fill="#8490b5">Storkey</text><rect x="72" y="18" width="80" height="11" rx="2" fill="#4c5470"><title>Storkey: ~160</title></rect><text x="156" y="27" fill="#e9e6dd">~160</text>
+<text x="0" y="43" fill="#8490b5">Pseudo-inv.</text><rect x="72" y="34" width="110" height="11" rx="2" fill="#4c5470"><title>Pseudo-inv.: ~220</title></rect><text x="186" y="43" fill="#e9e6dd">~220</text>
+</svg>
+  </div>
+  <div class="fc-take"><b>0.44</b><span>The overlap between two of my pictures, against 0.04 for random ones. The network isn't bad at remembering, it's bad at remembering similar things, and every fix is a version of checking what it already knows before adding more.</span>
+<svg viewBox="0 0 220 50" role="img" aria-label="random 0.04; my pictures 0.44; sheep, heart 0.82" font-size="9">
+<text x="0" y="11" fill="#8490b5">random</text><rect x="72" y="2" width="5" height="11" rx="2" fill="#4c5470"><title>random: 0.04</title></rect><text x="81" y="11" fill="#e9e6dd">0.04</text>
+<text x="0" y="27" fill="#8490b5">my pictures</text><rect x="72" y="18" width="59" height="11" rx="2" fill="#c561f6"><title>my pictures: 0.44</title></rect><text x="135" y="27" fill="#e9e6dd">0.44</text>
+<text x="0" y="43" fill="#8490b5">sheep, heart</text><rect x="72" y="34" width="110" height="11" rx="2" fill="#4c5470"><title>sheep, heart: 0.82</title></rect><text x="186" y="43" fill="#e9e6dd">0.82</text>
+</svg>
+  </div>
+  <div class="fc-take"><b>4,000</b><span>Random patterns the attention version holds in the same 400 neurons, by keeping the pictures instead of compressing them. Hebb learns and can't hold much; the dense network remembers everything and learns nothing.</span>
+<svg viewBox="0 0 220 50" role="img" aria-label="Hebb ~50; Pseudo-inv. ~220; Dense 4,000" font-size="9">
+<text x="0" y="11" fill="#8490b5">Hebb</text><rect x="72" y="2" width="2" height="11" rx="2" fill="#4c5470"><title>Hebb: ~50</title></rect><text x="78" y="11" fill="#e9e6dd">~50</text>
+<text x="0" y="27" fill="#8490b5">Pseudo-inv.</text><rect x="72" y="18" width="6" height="11" rx="2" fill="#4c5470"><title>Pseudo-inv.: ~220</title></rect><text x="82" y="27" fill="#e9e6dd">~220</text>
+<text x="0" y="43" fill="#8490b5">Dense</text><rect x="72" y="34" width="110" height="11" rx="2" fill="#c561f6"><title>Dense: 4,000</title></rect><text x="186" y="43" fill="#e9e6dd">4,000</text>
+</svg>
+  </div>
+</div>
 
-The other thing is that "learning" and "remembering" pulled apart the further I went. The Hebb network learns and can't remember much; the dense network remembers everything and doesn't learn at all. The models in the middle trade one for the other. I don't think that's a coincidence, and I don't think it stops at toy networks.
+The learning rule fitted on a postcard, and so did the recall rule and the reason it works, and the failures taught me more than the successes did.
 
 <script type="module" src="/sim/hopfield.js"></script>
 <style>
+  .fc-flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; margin: 1.25rem 0; }
+  .fc-step { position: relative; border: 1px solid var(--gray-800); border-radius: 0.75rem; padding: 0.9rem 1rem; background: var(--gray-999_40); display: flex; flex-direction: column; gap: 0.25rem; }
+  .fc-step b { font-family: var(--font-brand); font-size: 1.9rem; line-height: 1.1; color: var(--accent-dark); }
+  .fc-step span { font-size: var(--text-sm); color: var(--gray-300); line-height: 1.45; }
+  .fc-step:not(:last-child)::after { content: "→"; position: absolute; right: -0.85rem; top: 1rem; color: var(--gray-500); font-size: 1.1rem; }
+  .fc-methods { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin: 1.25rem 0; }
+  .fc-methods > div { border: 1px solid var(--gray-800); border-radius: 0.75rem; padding: 0.9rem 1rem; background: var(--gray-999_40); display: flex; flex-direction: column; gap: 0.4rem; }
+  .fc-methods b { font-family: var(--font-brand); font-size: 1.1rem; color: var(--gray-0); }
+  .fc-methods span { font-size: var(--text-sm); color: var(--gray-300); line-height: 1.5; }
+  .fc-takeaways { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin: 1.25rem 0 0; }
+  .fc-take { border: 1px solid var(--gray-800); border-radius: 0.75rem; padding: 0.9rem 1rem; background: var(--gray-999_40); display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
+  .fc-take > b { font-family: var(--font-brand); font-size: 1.9rem; line-height: 1.1; color: var(--accent-dark); }
+  .fc-take > span { font-size: var(--text-sm); color: var(--gray-300); line-height: 1.5; }
+  .fc-take svg { display: block; width: 100%; height: auto; margin-top: auto; padding-top: 0.4rem; }
+  .fc-take svg text { font-family: var(--font-mono); }
+  @media (max-width: 50em) {
+    .fc-flow, .fc-methods, .fc-takeaways { grid-template-columns: 1fr 1fr; }
+    .fc-step:not(:last-child)::after { display: none; }
+  }
+  @media (max-width: 30em) { .fc-flow, .fc-methods, .fc-takeaways { grid-template-columns: 1fr; } }
   .hop { margin: 1.5rem 0; }
   .hop-main { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start; }
   .hop-grid {

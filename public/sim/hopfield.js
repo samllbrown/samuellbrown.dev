@@ -299,7 +299,7 @@ function mountMemory(root) {
 					running = null;
 					const w = clean ? hamming(x, clean) : null;
 					setStatus('settled after ' + r.sweep + (r.sweep === 1 ? ' sweep' : ' sweeps') +
-						(w === null ? '' : w === 0 ? ': recalled perfectly' : ': ' + w + ' pixels wrong' + (w > N / 4 ? ' (that is not any of the memories)' : '')));
+						(w === null ? '' : w === 0 ? ': recalled perfectly' : ': ' + w + ' pixels wrong' + (w > N / 4 ? ' (that is not any of the memories)' : '')) + '. Now try Rub out half, or draw your own.');
 					return;
 				}
 				r.k = 0; r.flips = 0; r.sweep++;
@@ -343,7 +343,7 @@ function mountMemory(root) {
 	if (preload.length) {
 		x = corrupt(picture(preload[0]), 0.2, rng); clean = picture(preload[0]);
 		setStatus('a scribbled-on ' + preload[0] + wrong() + '. Press Recall.');
-	} else setStatus('draw something, then press Remember this');
+	} else setStatus('draw on the grid, then press Remember this');
 
 	let autostarted = false;
 	if ('IntersectionObserver' in window && root.dataset.autostart !== 'false' && preload.length) {
@@ -594,7 +594,7 @@ function mountDense(root) {
 			anim = null;
 			const w = wrongCount();
 			setStatus('settled after ' + steps + (steps === 1 ? ' update' : ' updates') + ' (top memory has ' + (top * 100).toFixed(0) + '% of the attention)' +
-				(w === null ? '' : w === 0 ? ': recalled perfectly' : ': ' + w + ' pixels wrong' + (top < 0.6 ? ', it is a blend of several memories' : '')));
+				(w === null ? '' : w === 0 ? ': recalled perfectly' : ': ' + w + ' pixels wrong' + (top < 0.6 ? ', it is a blend of several memories' : '')) + (top < 0.6 ? '. Drag β to the right and Recall.' : '. Drag β to the left and Recall.'));
 		} else {
 			setStatus('update ' + anim.step + ': x ← Ξᵀ softmax(β Ξ x), top weight ' + (top * 100).toFixed(0) + '%');
 			anim.next = now + 450;

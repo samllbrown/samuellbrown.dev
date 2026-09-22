@@ -152,3 +152,6 @@ so anything that must stand out uses `--accent-dark`.
   push when asked, and push promptly if a change is fixing something visibly broken on the live site.
 - After a rewrite, grep the post for `—`, `kill`, `cull`, and for bullets made of short full-stopped
   sentences, before reporting done.
+
+When a post is too long or its demos need to be more obvious, load `tighten-post` for the cutting pass and the
+"Try this" strip.

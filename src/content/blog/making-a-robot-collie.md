@@ -3,6 +3,7 @@ title: Making a robot collie
 publishDate: 2026-08-27 00:00:00
 description: |
   Last time I wrote the sheepdog's rules by hand. This time the dog had to work them out for itself, one generation at a time. You can evolve one in your browser, race it, and watch what it's thinking while it runs.
+series: collie
 tags:
   - Farming
   - Simulation

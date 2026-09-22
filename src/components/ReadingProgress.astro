@@ -1,0 +1,31 @@
+---
+// A thin bar along the top of the page that fills as the reader scrolls.
+---
+
+<div class="progress" aria-hidden="true"></div>
+
+<script>
+	function trackProgress() {
+		const bar = document.querySelector<HTMLElement>('.progress');
+		if (!bar) return;
+		const update = () => {
+			const max = document.documentElement.scrollHeight - window.innerHeight;
+			bar.style.width = max > 0 ? `${(window.scrollY / max) * 100}%` : '0%';
+		};
+		update();
+		addEventListener('scroll', update, { passive: true });
+	}
+	document.addEventListener('astro:page-load', trackProgress);
+</script>
+
+<style>
+	.progress {
+		position: fixed;
+		top: 0;
+		left: 0;
+		height: 3px;
+		width: 0;
+		background: linear-gradient(90deg, var(--accent-regular), var(--accent-dark));
+		z-index: 100;
+	}
+</style>

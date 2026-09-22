@@ -12,6 +12,7 @@ export const collections = {
 			img: z.string().optional(),
 			img_alt: z.string().optional(),
 			draft: z.boolean().default(false),
+			series: z.string().optional(),
 		}),
 	}),
 };

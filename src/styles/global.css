@@ -279,3 +279,73 @@ pre:not(.expressive-code pre) {
 	font-size: var(--text-sm);
 	line-height: 1.7;
 }
+
+/* Demo recipe strip and primary button, shared by every post's widgets (see tighten-post skill). */
+.demo-steps {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0.5rem 1rem;
+	margin: 1rem 0 0.75rem;
+	padding: 0.75rem 1rem;
+	border: 1px dashed var(--gray-700);
+	border-radius: 0.75rem;
+	background: var(--gray-999_40);
+	font-size: var(--text-sm);
+	line-height: 1.45;
+}
+.demo-steps > span {
+	font-family: var(--font-brand);
+	font-weight: 600;
+	font-size: 0.75rem;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--accent-dark);
+}
+.demo-steps ol {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem 1.25rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	counter-reset: step;
+}
+.demo-steps li {
+	counter-increment: step;
+	position: relative;
+	padding-left: 1.8rem;
+	color: var(--gray-200);
+}
+.demo-steps li::before {
+	content: counter(step);
+	position: absolute;
+	left: 0;
+	top: 0.05rem;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.3rem;
+	height: 1.3rem;
+	border-radius: 50%;
+	background: var(--accent-dark);
+	color: var(--gray-999);
+	font-family: var(--font-brand);
+	font-weight: 600;
+	font-size: 0.75rem;
+}
+.demo-steps b {
+	color: var(--gray-0);
+	font-weight: 600;
+}
+/* The first step of a demo recipe: same pill as the other buttons, picked out in the accent.
+   Doubled class beats a post's own ".x-controls button" rule without needing !important. */
+button.demo-primary.demo-primary {
+	border-color: var(--accent-dark);
+	color: var(--accent-dark);
+	font-weight: 600;
+}
+button.demo-primary.demo-primary:hover,
+button.demo-primary.demo-primary:focus-visible {
+	background: var(--accent-subtle-overlay);
+}

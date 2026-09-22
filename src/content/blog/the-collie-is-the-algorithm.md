@@ -3,6 +3,7 @@ title: The collie is the algorithm
 publishDate: 2026-08-25 00:00:00
 description: |
   Someone worked out that you can simulate a sheepdog with two rules. I didn't believe it, so I built it, then kept adding awkward sheep and obstacles to see when it would break. There are four simulations in here you can play against.
+series: collie
 tags:
   - Farming
   - Simulation

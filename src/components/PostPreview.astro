@@ -6,20 +6,24 @@ import { formatDate, readingTime } from '../utils';
 
 interface Props {
 	post: CollectionEntry<'blog'>;
+	step?: number;
+	hideTags?: boolean;
 }
 
+const { step, hideTags = false } = Astro.props;
 const { data, id, body } = Astro.props.post;
 ---
 
 <a class="card" href={`/blog/${id}/`}>
 	<span class="meta">
+		{step && <span class="step" aria-label={`Part ${step}`}>{step}</span>}
 		<time datetime={data.publishDate.toISOString()}>{formatDate(data.publishDate)}</time>
 		&middot; {readingTime(body ?? '')}
 	</span>
 	<span class="title">{data.title}</span>
 	<p class="description">{data.description}</p>
 	{
-		data.tags.length > 0 && (
+		!hideTags && data.tags.length > 0 && (
 			<span class="tags">
 				{data.tags.map((t) => (
 					<Pill>{t}</Pill>
@@ -40,17 +44,42 @@ const { data, id, body } = Astro.props.post;
 		border-radius: 0.75rem;
 		box-shadow: var(--shadow-sm);
 		text-decoration: none;
-		transition: box-shadow var(--theme-transition);
+		transition: box-shadow var(--theme-transition), border-color var(--theme-transition);
 	}
 
-	.card:hover {
+	.card:hover,
+	.card:focus-visible {
 		box-shadow: var(--shadow-md);
+		border-color: var(--accent-regular);
+	}
+
+	.card:focus-visible {
+		outline: none;
 	}
 
 	.meta {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.5rem;
 		font-family: var(--font-mono);
 		font-size: var(--text-sm);
 		color: var(--gray-300);
+	}
+
+	.step {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.4rem;
+		height: 1.4rem;
+		border-radius: 50%;
+		background: var(--accent-dark);
+		color: var(--gray-999);
+		font-family: var(--font-brand);
+		font-weight: 600;
+		font-size: 0.8rem;
+		line-height: 1;
 	}
 
 	.title {
